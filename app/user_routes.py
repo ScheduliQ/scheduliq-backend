@@ -1,9 +1,10 @@
 from flask import Blueprint, jsonify, request
 from models.database import get_collection
+from app.middlewares.session_middleware import verify_token
 
 user_api = Blueprint('user_api', __name__)
 
-
+#get all users
 @user_api.route('/users', methods=['GET'])
 def get_users():
     users_collection = get_collection('users')
@@ -13,3 +14,8 @@ def get_users():
     return jsonify(users), 200
 
 
+@user_api.route('/dashboard', methods=['GET'])
+# @verify_token
+def get_dash():
+    message={'message':"welcome to dashboard!"}
+    return jsonify(message), 200
