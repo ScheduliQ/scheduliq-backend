@@ -6,6 +6,7 @@ from configs.firebaseConfig import firebaseApp  # לאתחול חד-פעמי
 auth_api = Blueprint('auth_api', __name__)
 users_collection=get_collection('users')
 
+#Register User
 @auth_api.route("/register-user", methods=["POST"])  # יצירת נתיב API עם HTTP POST
 def register_user():
     try:
@@ -19,7 +20,8 @@ def register_user():
         new_user = {
             "uid": decoded["uid"],  # מזהה ייחודי מה-Firebase
             "email": email,  # כתובת המייל שנשלחה
-            "created_at": decoded["auth_time"]  # זמן ההרשמה שנשלף מה-Token
+            "created_at": decoded["auth_time"],  # זמן ההרשמה שנשלף מה-Token
+            "role":"worker",
         }
         users_collection.insert_one(new_user)  # הוספת המשתמש למסד הנתונים
         print(new_user)
@@ -30,3 +32,4 @@ def register_user():
         print("Error:", str(e))
         # טיפול בשגיאות במקרה של כישלון באימות או בעיות אחרות
         return jsonify({"error": str(e)}), 401
+
