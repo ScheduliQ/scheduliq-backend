@@ -15,7 +15,8 @@ def get_users():
 
 
 @user_api.route('/dashboard', methods=['GET'])
-# @verify_token
+@verify_token
 def get_dash():
-    message={'message':"welcome to dashboard!"}
+    user_email=request.user.get('email', 'Unknown user')
+    message={'message':f"Welcome to the dashboard, {user_email}!"}
     return jsonify(message), 200
