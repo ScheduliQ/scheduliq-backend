@@ -10,3 +10,6 @@ venv/
 env/
 .venv/
 .env/
+
+#ignore the firebase json file
+configs/serviceAccountKey.json
