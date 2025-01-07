@@ -10,7 +10,7 @@ auth_api = Blueprint('auth_api', __name__)
 # users_collection=get_collection('users')
 
 #Register User
-@auth_api.route("/register-user", methods=["POST"])  # יצירת נתיב API עם HTTP POST
+# @auth_api.route("/register-user", methods=["POST"])  # יצירת נתיב API עם HTTP POST
 # @verify_token
 # def register_user():
 #     try:
@@ -53,15 +53,17 @@ auth_api = Blueprint('auth_api', __name__)
 
 
 @auth_api.route("/register-user", methods=["POST"])
-# @verify_token
+# @verify_token #add later because this will be a button inside settings
 def register_user():
     try:
         # Extract user data from the request
         user_data = request.get_json()
-        print("Raw user data:", user_data)  # Debug input data
-
+        role=user_data.get("role", "worker")    
+        uid=user_data.get("uid")       
         # Create a new user
         user = UserModel.create(user_data)
+        auth.set_custom_user_claims(uid, {"role": role})
+
         return jsonify({"message": "User registered successfully"}), 201
 
     except DuplicateKeyError:
@@ -73,4 +75,44 @@ def register_user():
     except Exception as e:
         print("Internal server error:", str(e))
 
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
+
+@auth_api.route("/create-manager", methods=["POST"])
+def create_admin():
+    try:
+        # Extract data from request
+        data = request.get_json()
+        email = data.get("email")
+        password = data.get("password")
+        role = "manager"  # Role is hardcoded to 'admin'
+
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
+        
+
+        # Create user in Firebase
+        user_record = auth.create_user(email=data.get("email"),password=data.get("password"))
+        print("*********0",user_record)
+        # Set custom claims to make the user an admin
+        auth.set_custom_user_claims(user_record.uid, {"role": role})
+
+        # Add UID to the JSON data
+        data["uid"] = user_record.uid
+        data["role"] = role  # Ensure role is included
+        data["created_at"] = user_record.user_metadata.creation_timestamp
+        data.pop("password", None)
+
+        # Save user in MongoDB
+        users_collection = get_collection("users")
+        new_user = data
+        users_collection.insert_one(new_user)
+
+        return jsonify({"message": "Manager user created successfully"}), 201
+
+    except DuplicateKeyError:
+        return jsonify({"error": "User with this email already exists"}), 409
+
+    except Exception as e:
+        print("Internal server error:", str(e))
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500

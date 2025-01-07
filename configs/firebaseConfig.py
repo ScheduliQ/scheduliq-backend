@@ -1,6 +1,7 @@
-import firebase_admin
+import firebase_admin 
 from firebase_admin import credentials
 import os
+from firebase_admin import auth
 
 # קביעת הנתיב של הקובץ
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
