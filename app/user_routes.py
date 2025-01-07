@@ -4,6 +4,7 @@ from app.middlewares.session_middleware import verify_token
 from cloudinary.uploader import upload
 from configs.cloudinary_config import cloudinary
 
+
 user_api = Blueprint('user_api', __name__)
 
 #get all users
@@ -21,6 +22,7 @@ def get_users():
 def get_dash():
     user_email=request.user.get('email', 'Unknown user')
     message={'message':f"Welcome to the dashboard, {user_email}!"}
+
     return jsonify(message), 200
 
 
@@ -54,3 +56,4 @@ def upload_file():
         # Handle exceptions and return an error response
         print("Cloudinary Upload Error:", str(e))
         return jsonify({"error": str(e)}), 500
+

@@ -117,3 +117,4 @@ def create_admin():
     except Exception as e:
         print("Internal server error:", str(e))
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
