@@ -70,7 +70,8 @@ def register_user():
         return jsonify({"error": "User with this UID already exists"}), 409  # Conflict
 
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400  # Validation or not found error
+        return jsonify({"error": str(e)}), 400  # Validation or not found error.
+
 
     except Exception as e:
         print("Internal server error:", str(e))
