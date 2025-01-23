@@ -20,12 +20,9 @@ class UserModel:
         Raises:
             ValueError: If validation fails.
         """
-        print("User data before validation:", user_data)
 
         # Validate user data
         validated_user = validate_data(user_data, user_schema)
-        print("Validated user data:", validated_user)
-        print("Attempting to insert user into database:", validated_user)
 
         # Insert into the database
         result = UserModel.collection.insert_one(validated_user)
