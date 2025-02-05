@@ -30,6 +30,7 @@ class WeeklyScheduleModel:
         """
         Remove a schedule by ID.
         """
+        print("remove_schedule")
         result = WeeklyScheduleModel.collection.delete_one({"_id": ObjectId(schedule_id)})
         
         if result.deleted_count == 0:
@@ -43,9 +44,22 @@ class WeeklyScheduleModel:
         Get all schedules sorted from latest to earliest.
         """
         schedules = list(WeeklyScheduleModel.collection.find().sort("created_at", -1))
-        
+
         for schedule in schedules:
             schedule["_id"] = str(schedule["_id"])  # Convert ObjectId to string
             schedule["created_at"] = schedule["created_at"].isoformat()  # Convert datetime to string
         
         return schedules
+
+    @staticmethod
+    def get_latest_schedule():
+        """
+        Get the latest schedule based on created_at timestamp.
+        """
+        latest_schedule = WeeklyScheduleModel.collection.find_one(sort=[("created_at", -1)])
+        
+        if latest_schedule:
+            latest_schedule["_id"] = str(latest_schedule["_id"])  # Convert ObjectId to string
+            latest_schedule["created_at"] = latest_schedule["created_at"].isoformat()  # Convert datetime to string
+        
+        return latest_schedule
