@@ -10,7 +10,9 @@ users_collection = get_collection("users")
 def create_or_update_constraint(uid, data):
     data["last_updated"] = datetime.now(timezone.utc)
     data["status"] = "active"
-    user = users_collection.find_one({"uid": uid}, {"jobs": 1})
+    user = users_collection.find_one({"uid": uid},{"jobs": 1, "first_name": 1, "last_name": 1})
+    data["first_name"]=user["first_name"] 
+    data["last_name"]=user["last_name"] 
     data["roles"] = user["jobs"].split(",") if user and "jobs" in user else []
     validate_data(data, constraints_schema)
 

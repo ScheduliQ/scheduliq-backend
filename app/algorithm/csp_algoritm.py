@@ -1,5 +1,5 @@
 from ortools.sat.python import cp_model
-from app.algorithm.output_format import format_schedule  # ייבוא הפונקציה
+from app.algorithm.format import format_schedule_output,format_schedule_input  # ייבוא הפונקציה
 
 """
 This script uses Google OR-Tools to generate an optimized employee shift schedule. 
@@ -73,25 +73,10 @@ def parse_json_to_constraints():
     """
     JSON דוגמה קבוע שמומר למילון.
     """
-    data1 = {
-        "employee_skills": {
-            "Alice": ["manager", "waiter"],
-            "Bob": ["bartender"],
-            "Charlie": ["cleaner", "bartender"],
-            "Diana": ["manager", "cleaner"],
-            "Eve": ["waiter", "cleaner"],
-            "Frank": ["manager", "bartender"],
-            "Grace": ["waiter"],
-        },
-        "employee_availability": {
-            "Alice": [[0, 8], [1, 7], [2, 10], [3, 6], [4, 9], [5, 8], [6, 10]],
-            "Bob": [[7, 5], [8, 7], [9, 9], [10, 8], [11, 6], [12, 7], [13, 10]],
-            "Charlie": [[14, 6], [15, 8], [16, 7], [17, 9], [18, 10], [19, 6], [20, 8]],
-            "Diana": [[0, 10], [3, 7], [6, 9], [9, 6], [12, 8], [15, 7], [18, 10]],
-            "Eve": [[1, 6], [4, 8], [7, 10], [10, 9], [13, 7], [16, 6], [19, 8]],
-            "Frank": [[2, 8], [5, 9], [8, 7], [11, 10], [14, 8], [17, 6], [20, 9]],
-            "Grace": [[0, 3], [6, 8], [7, 9], [12, 10], [14, 6], [18, 7], [20, 10]],
-        },
+    fromDB = format_schedule_input()
+    data = {
+        "employee_skills": fromDB["employee_skills"],
+        "employee_availability": fromDB["employee_availability"],
         "shifts_per_day": 3,
         "shift_length": 8,
         "shift_names": ["Morning", "Evening", "Night"],
@@ -110,7 +95,44 @@ def parse_json_to_constraints():
             "cleaner": 2,
         }
     }
-    return data1
+    # data1 = {
+    #     "employee_skills": {
+    #         "Alice": ["manager", "waiter"],
+    #         "Bob": ["bartender"],
+    #         "Charlie": ["cleaner", "bartender"],
+    #         "Diana": ["manager", "cleaner"],
+    #         "Eve": ["waiter", "cleaner"],
+    #         "Frank": ["manager", "bartender"],
+    #         "Grace": ["waiter"],
+    #     },
+    #     "employee_availability": {
+    #         "Alice": [[0, 8], [1, 7], [2, 10], [3, 6], [4, 9], [5, 8], [6, 10]],
+    #         "Bob": [[7, 5], [8, 7], [9, 9], [10, 8], [11, 6], [12, 7], [13, 10]],
+    #         "Charlie": [[14, 6], [15, 8], [16, 7], [17, 9], [18, 10], [19, 6], [20, 8]],
+    #         "Diana": [[0, 10], [3, 7], [6, 9], [9, 6], [12, 8], [15, 7], [18, 10]],
+    #         "Eve": [[1, 6], [4, 8], [7, 10], [10, 9], [13, 7], [16, 6], [19, 8]],
+    #         "Frank": [[2, 8], [5, 9], [8, 7], [11, 10], [14, 8], [17, 6], [20, 9]],
+    #         "Grace": [[0, 3], [6, 8], [7, 9], [12, 10], [14, 6], [18, 7], [20, 10]],
+    #     },
+    #     "shifts_per_day": 3,
+    #     "shift_length": 8,
+    #     "shift_names": ["Morning", "Evening", "Night"],
+    #     "work_days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    #     "min_max_employees_per_shift": {"min": 2, "max": 4},
+    #     "roles_per_shift": {
+    #         "Morning": {"manager": 1, "waiter": 1},
+    #         "Evening": {"manager": 1, "bartender": 1},
+    #         "Night": {"manager": 1, "cleaner": 1},
+    #     },
+    #     "max_consecutive_shifts": 2,
+    #     "role_importance": {
+    #         "manager": 5,
+    #         "waiter": 4,
+    #         "bartender": 3,
+    #         "cleaner": 2,
+    #     }
+    # }
+    return data
 
 def solve_schedule():
     # יצירת מודל
@@ -257,7 +279,7 @@ def solve_schedule():
 
     if status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         # נתונים שנשלחים לפורמט JSON
-        formatted_json = format_schedule(
+        formatted_json = format_schedule_output(
             solver, shifts, employees, work_days, shift_names, shifts_per_day
         )
         
