@@ -14,7 +14,7 @@ def add_schedule():
         return jsonify(response), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+    
 @schedule_api.route("/remove/<schedule_id>", methods=["DELETE"])
 def remove_schedule(schedule_id):
     """

@@ -43,7 +43,7 @@ class WeeklyScheduleModel:
         """
         Get all schedules sorted from latest to earliest.
         """
-        schedules = list(WeeklyScheduleModel.collection.find().sort("created_at", -1))
+        schedules = list(WeeklyScheduleModel.collection.find().sort("created_at", -1).limit(16))
 
         for schedule in schedules:
             schedule["_id"] = str(schedule["_id"])  # Convert ObjectId to string
