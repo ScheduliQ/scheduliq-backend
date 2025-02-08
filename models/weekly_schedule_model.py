@@ -20,8 +20,7 @@ class WeeklyScheduleModel:
         # Ensure we do not exceed MAX_DOCUMENTS
         if WeeklyScheduleModel.collection.count_documents({}) > WeeklyScheduleModel.MAX_DOCUMENTS:
             oldest = WeeklyScheduleModel.collection.find().sort("created_at", 1).limit(1)
-            for doc in oldest:
-                WeeklyScheduleModel.collection.delete_one({"_id": doc["_id"]})
+            WeeklyScheduleModel.collection.delete_one({"_id": oldest["_id"]})
         
         return {"message": "Schedule added successfully", "id": str(result.inserted_id)}
 
@@ -63,3 +62,16 @@ class WeeklyScheduleModel:
             latest_schedule["created_at"] = latest_schedule["created_at"].isoformat()  # Convert datetime to string
         
         return latest_schedule
+    
+    @staticmethod
+    def update_schedule(schedule_id, new_days):
+        """
+        Update the 'days' field of a schedule identified by schedule_id.
+        """
+        result = WeeklyScheduleModel.collection.update_one(
+            {"_id": ObjectId(schedule_id)},
+            {"$set": {"days": new_days}}
+        )
+        if result.modified_count == 0:
+            return {"error": "Schedule not found or no changes made"}
+        return {"message": "Schedule updated successfully"}

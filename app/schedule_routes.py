@@ -49,3 +49,16 @@ def get_latest_schedule():
         return jsonify({"message": "No schedules found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@schedule_api.route('/update/<schedule_id>', methods=['PUT'])
+def update_schedule_route(schedule_id):
+    data = request.get_json()
+    if not data or 'days' not in data:
+        return jsonify({"error": "Missing 'days' field in request body"}), 400
+
+    new_days = data['days']
+    result = WeeklyScheduleModel.update_schedule(schedule_id, new_days)
+    
+    if 'error' in result:
+        return jsonify(result),400
+    return jsonify(result),200
