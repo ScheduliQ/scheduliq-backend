@@ -3,6 +3,7 @@ from models.database import get_collection
 from app.middlewares.session_middleware import verify_token
 from cloudinary.uploader import upload
 from configs.cloudinary_config import cloudinary
+from models.user_model import UserModel
 
 
 user_api = Blueprint('user_api', __name__)
@@ -25,6 +26,12 @@ def get_dash():
 
     return jsonify(message), 200
 
+@user_api.route('/userdata/<uid>', methods=['GET'])
+def get_user_by_uid(uid):
+    user = UserModel.find_by_uid(uid)
+    if not user:
+        return jsonify({"error": "משתמש לא נמצא"}), 404
+    return jsonify(user), 200
 
 @user_api.route('/upload', methods=['POST'])
 # @verify_token
