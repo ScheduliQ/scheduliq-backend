@@ -17,6 +17,8 @@ user_schema = {
 
 constraints_schema = {
     "uid": {"type": "string", "required": True},  # מזהה ייחודי של העובד
+    "first_name": {"type": "string", "required": True},  # שם העובד
+    "last_name": {"type": "string", "required": True},  # שם משפחה
     "availability": {
         "type": "list", "required": True,         # רשימת משמרות
         "schema": {
