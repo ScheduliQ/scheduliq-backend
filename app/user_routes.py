@@ -3,6 +3,7 @@ from models.database import get_collection
 from app.middlewares.session_middleware import verify_token
 from cloudinary.uploader import upload
 from configs.cloudinary_config import cloudinary
+from models.user_model import UserModel
 
 
 user_api = Blueprint('user_api', __name__)
@@ -25,6 +26,12 @@ def get_dash():
 
     return jsonify(message), 200
 
+@user_api.route('/userdata/<uid>', methods=['GET'])
+def get_user_by_uid(uid):
+    user = UserModel.find_by_uid(uid)
+    if not user:
+        return jsonify({"error": "משתמש לא נמצא"}), 404
+    return jsonify(user), 200
 
 @user_api.route('/upload', methods=['POST'])
 # @verify_token
@@ -56,4 +63,23 @@ def upload_file():
         # Handle exceptions and return an error response
         print("Cloudinary Upload Error:", str(e))
         return jsonify({"error": str(e)}), 500
+    
 
+@user_api.route('/userSetting/<uid>', methods=['PUT'])
+def update_user(uid):
+    try:
+        # קבלת הנתונים שנשלחו בפורמט JSON מהבקשה
+        update_data = request.get_json()
+        if not update_data:
+            return jsonify({"error": "No update data provided"}), 400
+
+        # קריאה למתודה שמעדכנת את הנתונים
+        updated_user = UserModel.update(uid, update_data)
+        return jsonify(updated_user), 200
+
+    except ValueError as e:
+        # אם המשתמש לא נמצא או שהנתונים אינם תקינים
+        return jsonify({"error": str(e)}), 404
+    except Exception as e:
+        # טיפול בשגיאות נוספות
+        return jsonify({"error": str(e)}), 500
