@@ -63,4 +63,23 @@ def upload_file():
         # Handle exceptions and return an error response
         print("Cloudinary Upload Error:", str(e))
         return jsonify({"error": str(e)}), 500
+    
 
+@user_api.route('/userSetting/<uid>', methods=['PUT'])
+def update_user(uid):
+    try:
+        # קבלת הנתונים שנשלחו בפורמט JSON מהבקשה
+        update_data = request.get_json()
+        if not update_data:
+            return jsonify({"error": "No update data provided"}), 400
+
+        # קריאה למתודה שמעדכנת את הנתונים
+        updated_user = UserModel.update(uid, update_data)
+        return jsonify(updated_user), 200
+
+    except ValueError as e:
+        # אם המשתמש לא נמצא או שהנתונים אינם תקינים
+        return jsonify({"error": str(e)}), 404
+    except Exception as e:
+        # טיפול בשגיאות נוספות
+        return jsonify({"error": str(e)}), 500
