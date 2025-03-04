@@ -30,7 +30,7 @@ def get_dash():
 def get_user_by_uid(uid):
     user = UserModel.find_by_uid(uid)
     if not user:
-        return jsonify({"error": "משתמש לא נמצא"}), 404
+        return jsonify({"error": "User not found."}), 404
     return jsonify(user), 200
 
 @user_api.route('/upload', methods=['POST'])
