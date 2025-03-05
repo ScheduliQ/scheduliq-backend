@@ -62,3 +62,50 @@ constraints_schema = {
     },
     "last_updated": {"type": "datetime", "required": True}  # תאריך עדכון אחרון
 }
+
+
+manager_settings_schema = {
+    "uid": {"type": "string", "required": True},
+    "shifts_per_day": {"type": "integer", "required": True},
+    "shift_names": {
+        "type": "list",
+        "schema": {"type": "string"},
+        "required": True
+    },
+    "shift_colors": {  # שדה אופציונלי לשמירת הצבעים לכל משמרת, לדוגמה { "Morning": "#AEDFF7", ... }
+        "type": "dict",
+        "required": False,
+        "valuesrules": {"type": "string"}
+    },
+    "roles_per_shift": {
+        "type": "dict",
+        "required": True,
+        # לכל מפתח (שם משמרת) הערך הוא מסמך שממפה שם תפקיד למספר עובדים נדרש.
+        "valuesrules": {
+            "type": "dict",
+            "valuesrules": {"type": "integer"}
+        }
+    },
+    "max_consecutive_shifts": {"type": "integer", "required": True},
+    "role_importance": {
+        "type": "dict",
+        "required": True,
+        # לכל תפקיד מפתחים את החשיבות שלו כמספר.
+        "valuesrules": {"type": "integer"}
+    },
+    "work_days": {
+        "type": "list",
+        "schema": {"type": "string"},
+        "required": True
+    },
+    "min_max_employees_per_shift": {
+        "type": "dict",
+        "required": True,
+        "schema": {
+            "min": {"type": "integer"},
+            "max": {"type": "integer"}
+        }
+    },
+    "last_updated": {"type": "datetime", "required": False}
+}
+

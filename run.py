@@ -5,7 +5,7 @@ from app.auth_routes import auth_api
 from app.constraints_routes import constraints_api
 from app.algorithm_routes import alg_api
 from app.schedule_routes import schedule_api
-
+from app.manager_settings_routes import manager_settings_api
 app = Flask(__name__)
 CORS(app)
 
@@ -14,6 +14,7 @@ app.register_blueprint(auth_api,url_prefix='/auth')
 app.register_blueprint(constraints_api, url_prefix="/constraints")
 app.register_blueprint(alg_api,url_prefix='/csp')
 app.register_blueprint(schedule_api, url_prefix="/schedule")
+app.register_blueprint(manager_settings_api, url_prefix='/manager-settings')
 
 if __name__ == '__main__':
     app.run(debug=True)
