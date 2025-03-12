@@ -120,4 +120,5 @@ manager_messages_schema = {
     "first_name": {"type": "string", "required": True},
     "last_name": {"type": "string", "required": True},
     "profile_picture": {"type": "string", "required": True},
+    "sid": {"type": "string","required": True},
 }
