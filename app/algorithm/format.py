@@ -1,7 +1,7 @@
 import json
 from models.database import get_collection
 from collections import defaultdict
-
+from models.manager_settings_model import get_manager_settings
 
 
 def format_schedule_output(solver, shifts, employees, work_days, shift_names, shifts_per_day):
@@ -44,7 +44,7 @@ def format_schedule_input():
     שואבת את האילוצים מהדאטהבייס וממירה אותם לפורמט שהאלגוריתם מבין.
     """
     constraintsDB = get_collection("constraints")
-    shifts_per_day=3 #needs to be taken from the database
+    shifts_per_day=get_manager_settings()["shifts_per_day"]
     constraints = constraintsDB.find({"status": "active"})  # מביא את כל האילוצים הפעילים
 
     employee_skills = {}
