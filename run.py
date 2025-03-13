@@ -8,9 +8,22 @@ from app.algorithm_routes import alg_api
 from app.schedule_routes import schedule_api
 from app.manager_settings_routes import manager_settings_api
 from app.manager_messages_routes import manager_messages_api
+from flask_mail import Mail
+from configs.envconfig import MAIL_USERNAME,MAIL_PASSWORD
 app = Flask(__name__)
 CORS(app)
+# Mail configuration
+app.config.update(
+    MAIL_SERVER='smtp.gmail.com',          # SMTP server (Gmail's server)
+    MAIL_PORT=587,                         # Port for TLS
+    MAIL_USE_TLS=True,                     # Use TLS for security
+    MAIL_USE_SSL=False,                    # Not needed if using TLS
+    MAIL_USERNAME=MAIL_USERNAME,  # Your email address
+    MAIL_PASSWORD=MAIL_PASSWORD,   # Your email password or app-specific password
+    MAIL_DEFAULT_SENDER=('ScheduliQ', MAIL_USERNAME)  # Default sender details
+)
 
+mail = Mail(app)  # Initialize Flask-Mail
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 app.socketio = socketio  # Attach to the app for later access in routes
