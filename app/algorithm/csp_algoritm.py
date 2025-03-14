@@ -1,5 +1,6 @@
 from ortools.sat.python import cp_model
 from app.algorithm.format import format_schedule_output,format_schedule_input  # ייבוא הפונקציה
+from models.manager_settings_model import get_manager_settings
 
 """
 This script uses Google OR-Tools to generate an optimized employee shift schedule. 
@@ -73,27 +74,19 @@ def parse_json_to_constraints():
     """
     JSON דוגמה קבוע שמומר למילון.
     """
+    manager_settings = get_manager_settings()
     fromDB = format_schedule_input()
     data = {
         "employee_skills": fromDB["employee_skills"],
         "employee_availability": fromDB["employee_availability"],
-        "shifts_per_day": 3,
+        "shifts_per_day": manager_settings["shifts_per_day"],
         "shift_length": 8,
-        "shift_names": ["Morning", "Evening", "Night"],
-        "work_days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-        "min_max_employees_per_shift": {"min": 2, "max": 4},
-        "roles_per_shift": {
-            "Morning": {"manager": 1, "waiter": 1},
-            "Evening": {"manager": 1, "bartender": 1},
-            "Night": {"manager": 1, "cleaner": 1},
-        },
-        "max_consecutive_shifts": 2,
-        "role_importance": {
-            "manager": 5,
-            "waiter": 4,
-            "bartender": 3,
-            "cleaner": 2,
-        }
+        "shift_names": manager_settings["shift_names"],
+        "work_days": manager_settings["work_days"],
+        "min_max_employees_per_shift": manager_settings["min_max_employees_per_shift"],
+        "roles_per_shift": manager_settings["roles_per_shift"],
+        "max_consecutive_shifts": manager_settings["max_consecutive_shifts"],
+        "role_importance": manager_settings["role_importance"]
     }
     # data1 = {
     #     "employee_skills": {

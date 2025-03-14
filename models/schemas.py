@@ -109,3 +109,16 @@ manager_settings_schema = {
     "last_updated": {"type": "datetime", "required": False}
 }
 
+
+manager_messages_schema = {
+    "uid": {"type": "string","required": True},
+    "business_id": {"type": "string","required": True},
+    "text": {"type": "string","required": True},
+    "priority": {"type": "string","required": True},
+    "created_at": {"type": "string","required": True},
+    "last_updated": {"type": "string","required": False},
+    "first_name": {"type": "string", "required": True},
+    "last_name": {"type": "string", "required": True},
+    "profile_picture": {"type": "string", "required": True},
+    "sid": {"type": "string","required": True},
+}

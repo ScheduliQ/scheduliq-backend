@@ -84,3 +84,15 @@ class UserModel:
         """
         result = UserModel.collection.delete_one({"uid": uid})
         return result.deleted_count > 0
+    
+    @staticmethod
+    def get_all_employee_emails():
+        """
+        Retrieve email addresses for all employees (users with role 'worker').
+        Returns:
+            list: A list of email strings.
+        """
+        # Query the users collection for documents where role equals "worker"
+        employees = UserModel.collection.find({"role": "worker"}, {"email": 1})
+        emails = [user["email"] for user in employees if "email" in user]
+        return emails
