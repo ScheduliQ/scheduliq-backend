@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, current_app
 import datetime
 from bson import ObjectId
-from app.middlewares.email_sender import send_urgent_email
+from app.middlewares.email_sender import send_email_html
 from app.middlewares.session_middleware import verify_token
 from models.manager_messages_model import ManagerMessagesModel
 from models.user_model import UserModel 
@@ -231,7 +231,7 @@ def create_manager_message():
                 """
 
 
-            send_urgent_email(employee_emails, subject, html_body)
+            send_email_html(employee_emails, subject, html_body)
             
         current_app.socketio.emit(
             'new_manager_message', 
