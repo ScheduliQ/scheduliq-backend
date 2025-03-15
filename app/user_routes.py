@@ -4,6 +4,7 @@ from app.middlewares.session_middleware import verify_token
 from cloudinary.uploader import upload
 from configs.cloudinary_config import cloudinary
 from models.user_model import UserModel
+from app.middlewares.email_sender import send_contact_email
 
 
 user_api = Blueprint('user_api', __name__)
@@ -83,3 +84,20 @@ def update_user(uid):
     except Exception as e:
         # טיפול בשגיאות נוספות
         return jsonify({"error": str(e)}), 500
+
+@user_api.route('/contact', methods=['POST'])
+def contact():
+    data = request.get_json()
+    name = data.get('name', '')
+    email = data.get('email', '')
+    message_text = data.get('message', '')
+
+    # Validate required fields
+    if not name or not email or not message_text:
+        return jsonify({'error': 'All fields are required'}), 400
+
+    try:
+        send_contact_email(name, email, message_text)
+        return jsonify({'message': 'Email sent successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': 'Failed to send email'}), 500
