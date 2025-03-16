@@ -96,3 +96,18 @@ class UserModel:
         employees = UserModel.collection.find({"role": "worker"}, {"email": 1})
         emails = [user["email"] for user in employees if "email" in user]
         return emails
+    @staticmethod
+    def get_all_employees():
+        """
+        Retrieve all employees (users with role 'worker').
+        
+        Returns:
+            list: A list of employee dictionaries.
+        """
+        # Query the users collection for documents where role equals "worker"
+        employees_cursor = UserModel.collection.find({"role": "worker"})
+        employees = []
+        for employee in employees_cursor:
+            employee["_id"] = str(employee["_id"])  # Convert ObjectId to string
+            employees.append(employee)
+        return employees

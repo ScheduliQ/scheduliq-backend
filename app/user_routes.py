@@ -101,3 +101,26 @@ def contact():
         return jsonify({'message': 'Email sent successfully'}), 200
     except Exception as e:
         return jsonify({'error': 'Failed to send email'}), 500
+    
+
+    
+@user_api.route('/employees', methods=['GET'])
+def get_all_employees_route():
+    """
+    GET /employees
+    Retrieve all employees with their first name, last name, and jobs (split into a list).
+    """
+    try:
+        employees = UserModel.get_all_employees()  # Retrieves all employee documents
+        # Filter each document to only include first_name, last_name, and split jobs into a list
+        result = [
+            {
+                "first_name": emp.get("first_name", ""),
+                "last_name": emp.get("last_name", ""),
+                "jobs": [job.strip() for job in emp.get("jobs", "").split(",") if job.strip()]
+            }
+            for emp in employees
+        ]
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
