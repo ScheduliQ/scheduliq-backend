@@ -106,7 +106,8 @@ manager_settings_schema = {
             "max": {"type": "integer"}
         }
     },
-    "last_updated": {"type": "datetime", "required": False}
+    "last_updated": {"type": "datetime", "required": False},
+    "required_shifts": {"type": "integer", "required": True}
 }
 
 
