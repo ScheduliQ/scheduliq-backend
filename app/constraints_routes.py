@@ -1,8 +1,11 @@
 # app/routes/constraints_routes.py
-from flask import Blueprint, request, jsonify
+from app.middlewares.gemini_service import priorityByAI
+from flask import Blueprint, json, request, jsonify, Response
 from models.constraints_model import load_draft,save_draft,create_or_update_constraint, get_constraints_by_uid, delete_constraints
 from models.schemas import constraints_schema
 from models.database import get_collection
+# from app.middlewares.gemini_api import generate
+
 
 constraints_collection = get_collection("constraints")
 constraints_api = Blueprint("constraints_api", __name__)
@@ -11,6 +14,18 @@ constraints_api = Blueprint("constraints_api", __name__)
 def create_constraint():
     data = request.get_json()
     uid = data.get("uid")
+    
+    # אם קיימים אילוצים וזמינות, נעדכן את השדה availability
+    if "constraints" in data and "availability" in data:
+        try:
+            # קריאה לפונקציה שמעדכנת את הזמינות
+            generated_list = priorityByAI(data.get("constraints"), data.get("availability"))
+            # עדכון השדה availability בנתונים
+            data["availability"] = generated_list
+        except Exception as e:
+            return jsonify({"error": f"Error during availability update: {str(e)}"}), 500
+    
+    # קריאה לפונקציה create_or_update_constraint עם הנתונים המעודכנים
     response = create_or_update_constraint(uid, data)
     return jsonify(response), 200
 
@@ -22,7 +37,7 @@ def get_constraint(uid):
     if not constraints:
         return jsonify({"error": "Constraints not found"}), 404
     else:
-        constraints["_id"] = str(constraints["_id"])  # המרת ObjectId למחרוזת
+        constraints["_id"] = str(constraints["_id"]) 
     return jsonify(constraints), 200
 
 
@@ -59,3 +74,20 @@ def load_draft_route(uid):
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
+
+
+# @constraints_api.route("/gemini", methods=["POST"])
+# def generate_priority():
+#     # Parse JSON data from the request body.
+#     data = request.get_json()
+#     if not data or "constraints" not in data or "availability" not in data:
+#         return jsonify({"error": "No 'prompt' provided"}), 400
+    
+#     try:
+#         # Call the function to generate the Gemini response.
+#         generated_text = priorityByAI(data.get("constraints"),data.get("availability"))
+#     except Exception as e:
+#         return jsonify({"error": f"Error during generation: {str(e)}"}), 500
+    
+#     # Return the generated text as JSON.
+#     return jsonify({"response": generated_text}), 200

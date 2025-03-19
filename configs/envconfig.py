@@ -9,5 +9,5 @@ CLOUDINATY_API_SECRET=os.getenv("CLOUDINATY_API_SECRET")
 MAIL_USERNAME=os.getenv("MAIL_USERNAME")  # Your email address
 MAIL_PASSWORD=os.getenv("MAIL_PASSWORD") 
 DEBUG = True
-
+GEMINI_API_KEY =os.getenv("GEMINI_API_KEY")
 
