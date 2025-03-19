@@ -49,7 +49,7 @@ def priorityByAI(constraints, availability):
     # Set the model to "gemini-1.5-flash"
     MODEL = "gemini-1.5-flash"
     model = genai.GenerativeModel(MODEL)
-    print("Initialized model:", model)
+    # print("Initialized model:", model)
     
     # Read the base prompt from file.
     prompt_file_path = "app/middlewares/prompts/priority.txt"
@@ -65,19 +65,19 @@ def priorityByAI(constraints, availability):
         "\n\n=== PARAMETERS ===\n"
         "Constraints:\n" + constraints +
         "\n\nAvailability:\n" + str(availability)+
-        # "\n\nShift Names:\n" + json.dumps(manager_settings["shift_names"], ensure_ascii=False, indent=2) +
-        # "\n\nWork Days:\n" + json.dumps(manager_settings["work_days"], ensure_ascii=False, indent=2)
-        "\n\nShift Names:\n" + str(shifts)+
-        "\n\nWork Days:\n" + str(days)
+        "\n\nShift Names:\n" + str(manager_settings["shift_names"]) +
+        "\n\nWork Days:\n" + str(manager_settings["work_days"])
+        # "\n\nShift Names:\n" + str(shifts)+
+        # "\n\nWork Days:\n" + str(days)
     )
     
     # Combine the base prompt with the additional parameters.
     input_text = base_prompt + additional_text
-    print("Final prompt sent to model:\n", input_text)
+    # print("Final prompt sent to model:\n", input_text)
     
     # Generate content using the combined prompt.
     response = model.generate_content(input_text)
-    print("Raw response received:", response)
+    # print("Raw response received:", response)
     
     # Verify that a valid response was generated.
     if not response or not response.text:
