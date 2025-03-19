@@ -1,11 +1,11 @@
 # app/routes/constraints_routes.py
+from app.middlewares.gemini_service import priorityByAI
 from flask import Blueprint, request, jsonify, Response
 from models.constraints_model import load_draft,save_draft,create_or_update_constraint, get_constraints_by_uid, delete_constraints
 from models.schemas import constraints_schema
 from models.database import get_collection
 # from app.middlewares.gemini_api import generate
-from configs.envconfig import GEMINI_API_KEY
-import google.generativeai as genai
+
 
 constraints_collection = get_collection("constraints")
 constraints_api = Blueprint("constraints_api", __name__)
@@ -25,7 +25,7 @@ def get_constraint(uid):
     if not constraints:
         return jsonify({"error": "Constraints not found"}), 404
     else:
-        constraints["_id"] = str(constraints["_id"])  # המרת ObjectId למחרוזת
+        constraints["_id"] = str(constraints["_id"]) 
     return jsonify(constraints), 200
 
 
@@ -65,27 +65,17 @@ def load_draft_route(uid):
 
 
 @constraints_api.route("/gemini", methods=["POST"])
-def chat():
-    genai.configure(api_key=GEMINI_API_KEY)
-
-    # Set the model to "gemini-1.5-flash"
-    MODEL = "gemini-1.5-flash"
-    # Read the free text from the request body.
-    input_text = request.get_data(as_text=True)
-    if not input_text:
-
-        return Response("No input text provided", status=400)
+def generate_priority():
+    # Parse JSON data from the request body.
+    data = request.get_json()
+    if not data or "constraints" not in data or "availability" not in data:
+        return jsonify({"error": "No 'prompt' provided"}), 400
     
     try:
-        # Call the Gemini model using the google-generativeai library.
-        model = genai.GenerativeModel(MODEL)
-        response = model.generate_content(input_text)
+        # Call the function to generate the Gemini response.
+        generated_text = priorityByAI(data.get("constraints"),data.get("availability"))
     except Exception as e:
-        return Response(f"Error during generation: {str(e)}", status=500)
+        return jsonify({"error": f"Error during generation: {str(e)}"}), 500
     
-    # Verify that a response was generated.
-    if not response or not response.text:
-        return Response("No response generated", status=500)
-    
-    # Return the generated text as plain text.
-    return Response(response.text, mimetype='text/plain')
+    # Return the generated text as JSON.
+    return jsonify({"response": generated_text}), 200

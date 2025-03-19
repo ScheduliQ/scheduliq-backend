@@ -14,3 +14,4 @@ env/
 #ignore the firebase json file
 configs/serviceAccountKey.json
 
+app/middlewares/prompts/
