@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from app.middlewares.gemini_service import chat_with_manager
 from models.weekly_schedule_model import WeeklyScheduleModel
 
 schedule_api = Blueprint("schedule_api", __name__)
@@ -62,3 +63,26 @@ def update_schedule_route(schedule_id):
     if 'error' in result:
         return jsonify(result),400
     return jsonify(result),200
+
+@schedule_api.route("/chatbot", methods=["POST"])
+def chat():
+    """
+    Expects a JSON payload with:
+      - message: the manager's message (string)
+      - first_message: boolean flag (true/false)
+      
+    Returns a JSON object with the chatbot's response.
+    """
+    data = request.get_json()
+    if not data or "message" not in data or "first_message" not in data:
+        return jsonify({"error": "Missing message or first_message flag"}), 400
+
+    manager_message = data["message"]
+    first_message = data["first_message"]
+
+    try:
+        reply = chat_with_manager(manager_message, first_message)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    return jsonify({"response": reply}), 200
