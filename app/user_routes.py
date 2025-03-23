@@ -69,20 +69,16 @@ def upload_file():
 @user_api.route('/userSetting/<uid>', methods=['PUT'])
 def update_user(uid):
     try:
-        # קבלת הנתונים שנשלחו בפורמט JSON מהבקשה
         update_data = request.get_json()
         if not update_data:
             return jsonify({"error": "No update data provided"}), 400
 
-        # קריאה למתודה שמעדכנת את הנתונים
         updated_user = UserModel.update(uid, update_data)
         return jsonify(updated_user), 200
 
     except ValueError as e:
-        # אם המשתמש לא נמצא או שהנתונים אינם תקינים
         return jsonify({"error": str(e)}), 404
     except Exception as e:
-        # טיפול בשגיאות נוספות
         return jsonify({"error": str(e)}), 500
 
 @user_api.route('/contact', methods=['POST'])
@@ -122,5 +118,48 @@ def get_all_employees_route():
             for emp in employees
         ]
         return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
+
+@user_api.route('/employees-management', methods=['GET'])
+def get_all_employees_management():
+    """
+    GET /employees
+    Retrieve all employees with their first name, last name, and jobs (split into a list).
+    """
+    try:
+        employees = UserModel.get_all_employees()  # Retrieves all employee documents
+        # Filter each document to only include first_name, last_name, and split jobs into a list
+        result = [
+            {
+                "uid": emp.get("uid", ""),
+                "name": emp.get("first_name", "")+" "+emp.get("last_name", ""),
+                "roles": [job.strip() for job in emp.get("jobs", "").split(",") if job.strip()]
+            }
+            for emp in employees
+        ]
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
+@user_api.route('/employees-management', methods=['PUT'])
+def update_employees():
+    try:
+        data = request.get_json()
+        # Get the list of employees from the payload.
+        employees_list = data.get("employees", [])
+        for emp in employees_list:
+            uid = emp.get("uid")
+            roles_list = emp.get("roles", [])
+            jobs = ",".join(roles_list)
+            data = {
+                "jobs": jobs
+            }
+            if uid is None:
+                continue  
+            UserModel.update(uid, data)
+            
+        return jsonify({"message": "Employees updated successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
