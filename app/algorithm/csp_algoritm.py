@@ -269,92 +269,91 @@ def solve_schedule():
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = 60.0
     status = solver.Solve(model)
+    textOutput=display_schedule(solver, shifts, availability_dict, role_shortages, constraints)
+    # splitted_output = textOutput.split("here")
 
     if status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
-        # נתונים שנשלחים לפורמט JSON
         formatted_json = format_schedule_output(
-            solver, shifts, employees, work_days, shift_names, shifts_per_day
+            solver, shifts, employees, work_days, shift_names, shifts_per_day, roles_per_shift,constraints
         )
         
-        return formatted_json  # מחזיר JSON מוכן
+        return formatted_json,textOutput  
 
     return None  # אם אין פ
-# def display_schedule(solver, shifts,availability_dict, role_shortages, constraints):
-#     """
-#     מציג את לוח הזמנים בפורמט קריא וברור עם הדגשת חוסרים
-#     """
-#     employees = list(constraints["employee_skills"].keys())
-#     shift_names = constraints["shift_names"]
-#     shifts_per_day = constraints["shifts_per_day"]
-#     work_days = constraints["work_days"]
-#     roles_per_shift = constraints["roles_per_shift"]
-#     NUM_SHIFTS = shifts_per_day * len(work_days)
+def display_schedule(solver, shifts, availability_dict, role_shortages, constraints):
+    """
+    Returns a list of strings, each representing one shift's summary.
+    """
+    shift_summaries = []
+    employees = list(constraints["employee_skills"].keys())
+    shift_names = constraints["shift_names"]
+    shifts_per_day = constraints["shifts_per_day"]
+    work_days = constraints["work_days"]
+    roles_per_shift = constraints["roles_per_shift"]
+    NUM_SHIFTS = shifts_per_day * len(work_days)
 
-#     print("\n=================== Shift Schedule ===================")
+    for shift in range(NUM_SHIFTS):
+        lines = []  # Hold the summary for the current shift.
+        day = work_days[shift // shifts_per_day]
+        shift_name = shift_names[shift % shifts_per_day]
+        
+        lines.append(f"{day.upper()} - {shift_name.upper()}")
+        lines.append("=" * 30)
+        
+        # 1. Display required roles.
+        shift_roles = roles_per_shift[shift_name]
+        lines.append("Required Roles:")
+        for role, count in shift_roles.items():
+            lines.append(f"  • {role.capitalize()}: {count} needed")
+        
+        # 2. Display assigned employees by role.
+        lines.append("\nAssigned Employees by Role:")
+        assigned_by_role = {}
+        for employee_index, employee_name in enumerate(employees):
+            if solver.Value(shifts[(employee_index, shift)]) == 1:
+                employee_roles = constraints["employee_skills"][employee_name]
+                for role in employee_roles:
+                    if role not in assigned_by_role:
+                        assigned_by_role[role] = []
+                    assigned_by_role[role].append(employee_name)
+        for role in shift_roles.keys():
+            lines.append(f"  {role.capitalize()}:")
+            if role in assigned_by_role and assigned_by_role[role]:
+                for emp in sorted(assigned_by_role[role]):
+                    priority = availability_dict.get((emp, shift), 0)
+                    lines.append(f"    ✓ {emp} (Priority: {priority}/10)")
+            else:
+                lines.append("    ⚠ No employees assigned")
+        
+        # 3. Display staffing status.
+        lines.append("\nStaffing Status:")
+        has_shortages = False
+        shift_status = []
+        for role in shift_roles.keys():
+            required_count = shift_roles[role]
+            assigned_count = len(assigned_by_role.get(role, []))
+            shortage = required_count - assigned_count
+            if shortage > 0:
+                status_str = f"⚠ SHORTAGE: Missing {shortage}"
+                has_shortages = True
+            else:
+                status_str = "✓ FULL"
+            shift_status.append(f"  {role.capitalize()}: {status_str} ({assigned_count}/{required_count} filled)")
+        # Sort status so that shortages appear first.
+        shift_status.sort(key=lambda x: "SHORTAGE" not in x)
+        lines.extend(shift_status)
+        
+        if has_shortages:
+            lines.append("\n⚠ WARNING: This shift has staffing shortages!")
+        else:
+            lines.append("\n✓ All positions are properly filled for this shift")
+        
+        # Join the lines for the current shift summary and add it to the list.
+        shift_summary = "<br>".join(lines)
+        shift_summaries.append(shift_summary)
     
-#     for shift in range(NUM_SHIFTS):
-#         day = work_days[shift // shifts_per_day]
-#         shift_name = shift_names[shift % shifts_per_day]
-        
-#         print(f"\n{day.upper()} - {shift_name.upper()}")
-#         print("=" * 50)
-        
-#         # 1. תצוגת דרישות התפקיד
-#         shift_roles = roles_per_shift[shift_name]
-#         print("Required Roles:")
-#         for role, count in shift_roles.items():
-#             print(f"  • {role.capitalize()}: {count} needed")
-        
-#         # 2. תצוגת עובדים משובצים לפי תפקיד
-#         print("\nAssigned Employees by Role:")
-#         assigned_by_role = {}
-#         for employee_index, employee_name in enumerate(employees):
-#             if solver.Value(shifts[(employee_index, shift)]) == 1:
-#                 employee_roles = constraints["employee_skills"][employee_name]
-#                 for role in employee_roles:
-#                     if role not in assigned_by_role:
-#                         assigned_by_role[role] = []
-#                     assigned_by_role[role].append(employee_name)
-        
-#         # הוספת תצוגת העדפות לכל עובד משובץ
-#         for role in shift_roles.keys():
-#             print(f"  {role.capitalize()}:")
-#             if role in assigned_by_role and assigned_by_role[role]:
-#                 for emp in sorted(assigned_by_role[role]):
-#                     priority = availability_dict.get((emp, shift), 0)
-#                     print(f"    ✓ {emp} (Priority: {priority}/10)")
-#             else:
-#                 print("    ⚠ No employees assigned")
-        
-#         # 3. תצוגת חוסרים מודגשת
-#         print("\nStaffing Status:")
-#         has_shortages = False
-#         shift_status = []
-        
-#         for role in shift_roles.keys():
-#             required_count = shift_roles[role]
-#             assigned_count = len(assigned_by_role.get(role, []))
-#             shortage = required_count - assigned_count
-            
-#             if shortage > 0:
-#                 status = f"⚠ SHORTAGE: Missing {shortage}"
-#                 has_shortages = True
-#             else:
-#                 status = "✓ FULL"
-            
-#             shift_status.append(f"  {role.capitalize()}: {status} ({assigned_count}/{required_count} filled)")
-        
-#         # מיון הסטטוס כך שחוסרים יופיעו קודם
-#         shift_status.sort(key=lambda x: "SHORTAGE" not in x)
-#         for status in shift_status:
-#             print(status)
-        
-#         if has_shortages:
-#             print("\n⚠ WARNING: This shift has staffing shortages!")
-#         else:
-#             print("\n✓ All positions are properly filled for this shift")
-            
-#         print("\n" + "-" * 50)
+    return shift_summaries
+        # print("\n" + "-" * 50)
 
 # def main():
 #     constraints = parse_json_to_constraints()
