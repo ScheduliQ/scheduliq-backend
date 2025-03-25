@@ -1,6 +1,7 @@
 # models/constraints_model.py
 from datetime import datetime, timezone
 from models.database import get_collection
+from models.manager_settings_model import get_manager_settings
 from utils.validation import validate_data
 from models.schemas import constraints_schema
 
@@ -14,6 +15,9 @@ def create_or_update_constraint(uid, data):
     data["first_name"]=user["first_name"] 
     data["last_name"]=user["last_name"] 
     data["roles"] = user["jobs"].split(",") if user and "jobs" in user else []
+    settings = get_manager_settings()
+    data["version"] = settings.get("activeVersion")
+    data["is_final"] = True
     validate_data(data, constraints_schema)
 
     constraints_collection.update_one(
@@ -44,11 +48,17 @@ def save_draft(uid, draft_data):
 
 
 def load_draft(uid):
+    settings = get_manager_settings()
+    current_version = settings.get("activeVersion")
     try:
         constraint = constraints_collection.find_one({"uid": uid}, {"draft": 1})  
         if constraint and "draft" in constraint:
+        
+            if constraint.get("draftVersion") != current_version:
+                raise ValueError("Draft version is outdated. Please update the draft.")
             return {"draft": constraint["draft"]}
         return {"message": "No draft found"}
+
     except Exception as e:
         raise ValueError(f"Failed to load draft: {str(e)}")
     

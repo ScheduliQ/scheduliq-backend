@@ -10,6 +10,7 @@ from app.manager_settings_routes import manager_settings_api
 from app.manager_messages_routes import manager_messages_api
 from flask_mail import Mail
 from configs.envconfig import MAIL_USERNAME,MAIL_PASSWORD
+from utils.scheduler import start_scheduler
 app = Flask(__name__)
 CORS(app)
 # Mail configuration
@@ -27,7 +28,7 @@ mail = Mail(app)  # Initialize Flask-Mail
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 app.socketio = socketio  # Attach to the app for later access in routes
-
+scheduler = start_scheduler()
 
 
 app.register_blueprint(user_api, url_prefix='/user')

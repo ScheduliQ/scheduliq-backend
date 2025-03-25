@@ -55,7 +55,8 @@ def save_draft_route():
         uid = data.get("uid")
         draft_data = {
             "availability": data.get("availability", []),
-            "constraints": data.get("constraints", "")
+            "constraints": data.get("constraints", ""),
+            "draftVersion": data.get("draftVersion", "")
         }
         response = save_draft(uid, draft_data)
         return jsonify(response), 200
@@ -71,6 +72,9 @@ def load_draft_route(uid):
         response = load_draft(uid)
         return jsonify(response), 200
     except ValueError as e:
+        if "Draft version is outdated." in str(e) :
+            return jsonify({"error": str(e) }), 403
+        
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
