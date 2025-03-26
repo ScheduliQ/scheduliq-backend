@@ -48,36 +48,43 @@ def update_manager_settings(data: dict):
     return get_manager_settings()
 
 
-# דוגמה לפונקציה שמחשבת מעבר למחזור חדש
 def transition_cycle():
-    # שליפת ההגדרות הנוכחיות ממסד הנתונים
-    settings = get_manager_settings()  # פונקציה קיימת שמשיגה את מסמך ההגדרות
+    print("Transitioning cycle..........................")
+    settings = get_manager_settings()  
     submission_start = settings.get("submissionStart")
     submission_end = settings.get("submissionEnd")
-    
-    # המרה לאובייקט datetime אם השדות הגיעו כמחרוזת
+    # Ensure submission_start and submission_end are timezone-aware
     if isinstance(submission_start, str):
+
+        
         submission_start = datetime.fromisoformat(submission_start.replace("Z", "+00:00"))
+    elif submission_start and submission_start.tzinfo is None:
+        submission_start = submission_start.replace(tzinfo=timezone.utc)
+    
     if isinstance(submission_end, str):
         submission_end = datetime.fromisoformat(submission_end.replace("Z", "+00:00"))
+    elif submission_end and submission_end.tzinfo is None:
+        submission_end = submission_end.replace(tzinfo=timezone.utc)
     
     now = datetime.now(timezone.utc)
-    
-    # חישוב תחילת המחזור הבא - נניח שהמחזור משתנה בדיוק ביום ראשון הבא,
-    # כלומר, נוסיף 7 ימים לערך הקיים של submissionStart
+    print(f"now: {now}")
+    print(type(now))
+    print(f"submission_start: {submission_start}")
+    print(type(submission_start))
+    print(f"submission_end: {submission_end}")
+    print(type(submission_end))
     next_submission_start = submission_start + timedelta(days=7)
     
+
+
     if now >= next_submission_start:
-        # יצירת activeVersion חדש
         new_active_version = generate_random_version()
-        # עדכון טווח ההגשה למחזור הבא - נוסיף 7 ימים גם ל-submissionStart וגם ל-submissionEnd
         new_submission_start = submission_start + timedelta(days=7)
         new_submission_end = submission_end + timedelta(days=7)
         update_data = {
             "activeVersion": new_active_version,
             "submissionStart": new_submission_start,
             "submissionEnd": new_submission_end,
-            "last_updated": datetime.now(timezone.utc)
         }
         manager_settings_collection.update_one({}, {"$set": update_data}, upsert=True)
         # print(f"Cycle transitioned: New activeVersion: {new_active_version}")

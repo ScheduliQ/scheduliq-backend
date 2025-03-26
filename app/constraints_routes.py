@@ -4,6 +4,7 @@ from flask import Blueprint, json, request, jsonify, Response
 from models.constraints_model import load_draft,save_draft,create_or_update_constraint, get_constraints_by_uid, delete_constraints
 from models.schemas import constraints_schema
 from models.database import get_collection
+from models.manager_settings_model import get_manager_settings
 # from app.middlewares.gemini_api import generate
 
 
@@ -50,13 +51,14 @@ def delete_constraint(uid):
 
 @constraints_api.route("/save-draft", methods=["POST"])
 def save_draft_route():
+    manager_settings=get_manager_settings()
     try:
         data = request.get_json()
         uid = data.get("uid")
         draft_data = {
             "availability": data.get("availability", []),
             "constraints": data.get("constraints", ""),
-            "draftVersion": data.get("draftVersion", "")
+            "draftVersion": manager_settings.get("activeVersion", "")
         }
         response = save_draft(uid, draft_data)
         return jsonify(response), 200

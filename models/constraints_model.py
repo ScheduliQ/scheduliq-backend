@@ -51,10 +51,10 @@ def load_draft(uid):
     settings = get_manager_settings()
     current_version = settings.get("activeVersion")
     try:
-        constraint = constraints_collection.find_one({"uid": uid}, {"draft": 1})  
+        constraint = constraints_collection.find_one({"uid": uid}, {"draft": 1,"draftVersion": 1})  
         if constraint and "draft" in constraint:
-        
-            if constraint.get("draftVersion") != current_version:
+
+            if constraint.get("draft").get("draftVersion") != current_version:
                 raise ValueError("Draft version is outdated. Please update the draft.")
             return {"draft": constraint["draft"]}
         return {"message": "No draft found"}
