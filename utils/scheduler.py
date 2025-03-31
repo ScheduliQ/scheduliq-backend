@@ -4,6 +4,9 @@ from datetime import datetime, timezone, timedelta
 # יש לייבא את הפונקציה transition_cycle ממודול ההגדרות/מודל המתאמים שלך
 from models.manager_settings_model import transition_cycle, get_manager_settings
 
+# Global variable to hold the scheduler instance
+SCHEDULER = None
+
 def get_cron_trigger_params(submission_date: datetime,local_tz) -> dict:
     print("get_cron_trigger_params..................")
     """
@@ -23,6 +26,8 @@ def get_cron_trigger_params(submission_date: datetime,local_tz) -> dict:
 
 
 def start_scheduler() -> BackgroundScheduler:
+    global SCHEDULER
+
     print("start_scheduler..................")
     """
     Initializes and starts the APScheduler with the transition_cycle job.
@@ -33,13 +38,26 @@ def start_scheduler() -> BackgroundScheduler:
     local_tz = timezone(timedelta(hours=2))
     cron_params = get_cron_trigger_params(get_manager_settings().get("submissionStart"), local_tz)
     print(f"cron_params: {cron_params}")
-    scheduler.add_job(transition_cycle, 'cron', **cron_params)
-    
-    
-    # scheduler.add_job(transition_cycle, 'cron', day_of_week='sun', hour=0, minute=0)
+    scheduler.add_job(transition_cycle, 'cron',id="transition_cycle_job", **cron_params)
     scheduler.start()
+    SCHEDULER = scheduler
+
     print(f"Scheduler started at {datetime.now(timezone.utc)}")
     return scheduler
+
+
+def reschedule_transition_job():
+    global SCHEDULER
+    local_tz = timezone(timedelta(hours=2))
+    new_cron_params = get_cron_trigger_params(get_manager_settings().get("submissionStart"), local_tz)
+    if SCHEDULER is not None:
+        try:
+            SCHEDULER.reschedule_job("transition_cycle_job", trigger='cron', **new_cron_params)
+            print(f"Rescheduled transition_cycle_job with new parameters: {new_cron_params}")
+        except Exception as e:
+            print("Error rescheduling job:", e)
+    else:
+        print("Scheduler is not running.")
 
 # If this file is run as main, start the scheduler in a loop.
 if __name__ == '__main__':

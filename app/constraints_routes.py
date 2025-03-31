@@ -74,13 +74,15 @@ def load_draft_route(uid):
         response = load_draft(uid)
         return jsonify(response), 200
     except ValueError as e:
-        if "Draft version is outdated." in str(e) :
-            return jsonify({"error": str(e) }), 403
-        
-        return jsonify({"error": str(e)}), 400
+        error_message = str(e)
+        if "Draft version is outdated." in error_message:
+            return jsonify({"error": error_message, "errorType": "OUTDATED"}), 403
+        elif "No draft found" in error_message:
+            return jsonify({"error": error_message, "errorType": "NOT_FOUND"}), 404
+        else:
+            return jsonify({"error": error_message, "errorType": "VALIDATION_ERROR"}), 400
     except Exception as e:
-        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
-
+        return jsonify({"error": "An unexpected error occurred", "details": str(e), "errorType": "UNEXPECTED"}), 500
 
 # @constraints_api.route("/gemini", methods=["POST"])
 # def generate_priority():

@@ -57,11 +57,12 @@ def load_draft(uid):
             if constraint.get("draft").get("draftVersion") != current_version:
                 raise ValueError("Draft version is outdated. Please update the draft.")
             return {"draft": constraint["draft"]}
-        return {"message": "No draft found"}
+        raise ValueError("No draft found")
 
     except Exception as e:
-        raise ValueError(f"Failed to load draft: {str(e)}")
+        raise ValueError(str(e))
     
 
 def get_all_constraints():
     return constraints_collection.find()
+

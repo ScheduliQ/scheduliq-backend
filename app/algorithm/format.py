@@ -66,12 +66,14 @@ def format_schedule_output(solver, shifts, employees, work_days, shift_names, sh
 
 
 def format_schedule_input():
-    """ 
-    שואבת את האילוצים מהדאטהבייס וממירה אותם לפורמט שהאלגוריתם מבין.
     """
+    Fetches constraints from the database and converts them into a format understood by the algorithm.
+    """
+    manager_settings= get_manager_settings()
+    active_version = manager_settings["activeVersion"]
     constraintsDB = get_collection("constraints")
-    shifts_per_day=get_manager_settings()["shifts_per_day"]
-    constraints = constraintsDB.find({"status": "active"})  # מביא את כל האילוצים הפעילים
+    shifts_per_day=manager_settings["shifts_per_day"]
+    constraints = constraintsDB.find({"is_final": True,"version": active_version}) 
 
     employee_skills = {}
     employee_availability = defaultdict(list)
@@ -83,16 +85,19 @@ def format_schedule_input():
         roles = constraint.get("roles", [])
         availability = constraint.get("availability", [])
 
-        # הוספת כישורים של העובד
+        # Adding employee skills
         employee_skills[full_name] = roles
 
-        # המרת זמינות לפורמט של האלגוריתם
+        # Convert availability to the algorithm's format
         for shift in availability:
             shift_id = shift["day"] * shifts_per_day + shift["shift"] 
             priority = shift["priority"]
             employee_availability[full_name].append([shift_id, priority])
-
-    return {
+    # print(f"employee_skills: {dict(employee_skills)}")
+    # print(f"employee_availability: {dict(employee_availability)}")
+    payload={
         "employee_skills": dict(employee_skills),
         "employee_availability": dict(employee_availability),
     }
+    print(f"payload: {payload}")
+    return payload
