@@ -42,6 +42,8 @@ def update_manager_settings(data: dict):
     
     # Update (or insert) the unique document.
     manager_settings_collection.update_one({}, {"$set": validated_data}, upsert=True)
+    constraints_collection = get_collection("constraints")
+    constraints_collection.update_many({}, {"$set": {"is_final": False}})
     # Return the updated document.
     return get_manager_settings()
 
@@ -69,7 +71,7 @@ def transition_cycle():
         print(type(submission_start))
         print(f"submission_end: {submission_end}")
         print(type(submission_end))
-        
+
         next_submission_start = submission_start + timedelta(days=7)
         print(f"next_submission_start: {next_submission_start}")
         

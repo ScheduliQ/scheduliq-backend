@@ -35,7 +35,7 @@ def start_scheduler() -> BackgroundScheduler:
     Returns the scheduler instance.
     """
     scheduler = BackgroundScheduler(timezone=timezone.utc)
-    local_tz = timezone(timedelta(hours=2))
+    local_tz = timezone(timedelta(hours=3))
     cron_params = get_cron_trigger_params(get_manager_settings().get("submissionStart"), local_tz)
     print(f"cron_params: {cron_params}")
     scheduler.add_job(transition_cycle, 'cron',id="transition_cycle_job", **cron_params)
@@ -48,7 +48,7 @@ def start_scheduler() -> BackgroundScheduler:
 
 def reschedule_transition_job():
     global SCHEDULER
-    local_tz = timezone(timedelta(hours=2))
+    local_tz = timezone(timedelta(hours=3))
     new_cron_params = get_cron_trigger_params(get_manager_settings().get("submissionStart"), local_tz)
     if SCHEDULER is not None:
         try:
