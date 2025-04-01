@@ -57,10 +57,13 @@ constraints_schema = {
                         }
                     }
                 },
-        "constraints": {"type": "string"}
+        "constraints": {"type": "string"},
+        "draftVersion" : {"type": "string", "required": True}
         }
     },
-    "last_updated": {"type": "datetime", "required": True}  # תאריך עדכון אחרון
+    "last_updated": {"type": "datetime", "required": True},  # תאריך עדכון אחרון
+    "version": {"type": "string", "required": True}, 
+    "is_final": {"type": "boolean", "required": True}
 }
 
 
@@ -107,7 +110,10 @@ manager_settings_schema = {
         }
     },
     "last_updated": {"type": "datetime", "required": False},
-    "required_shifts": {"type": "integer", "required": True}
+    "required_shifts": {"type": "integer", "required": True},
+    "activeVersion": {"type": "string", "required": True}, 
+    "submissionStart": {"type": "datetime", "required": True},
+    "submissionEnd": {"type": "datetime", "required": True}
 }
 
 

@@ -71,9 +71,7 @@ where shifts need to be assigned efficiently while considering complex constrain
 """
 
 def parse_json_to_constraints():
-    """
-    JSON דוגמה קבוע שמומר למילון.
-    """
+
     manager_settings = get_manager_settings()
     fromDB = format_schedule_input()
     data = {
@@ -88,6 +86,7 @@ def parse_json_to_constraints():
         "max_consecutive_shifts": manager_settings["max_consecutive_shifts"],
         "role_importance": manager_settings["role_importance"]
     }
+    print("data:", data)
     # data1 = {
     #     "employee_skills": {
     #         "Alice": ["manager", "waiter"],
@@ -128,13 +127,15 @@ def parse_json_to_constraints():
     return data
 
 def solve_schedule():
-    # יצירת מודל
+    # Create the model
     model = cp_model.CpModel()
     
-    # קריאת נתונים
+    # Reading data
     constraints = parse_json_to_constraints()
     employee_skills = constraints["employee_skills"]
+    print("employee_skills:", employee_skills)
     employees = list(employee_skills.keys())
+    print("employees:", employees)
     NUM_EMPLOYEES = len(employees)
     shifts_per_day = constraints["shifts_per_day"]
     work_days = constraints["work_days"]
@@ -147,19 +148,19 @@ def solve_schedule():
     shift_names = constraints["shift_names"]
     role_importance = constraints["role_importance"]
 
-    # המרת נתוני הזמינות למבנה נוח יותר
-    availability_dict = {}  # מיפוי (עובד, משמרת) -> עדיפות
+    # Convert availability data into a more convenient structure
+    availability_dict = {}  # Mapping (employee, shift) -> priority
     for employee_name, shifts_data in constraints["employee_availability"].items():
         for shift_id, priority in shifts_data:
             availability_dict[(employee_name, shift_id)] = priority
 
-    # משתני החלטה
+    # Decision variables
     shifts = {}
     for employee in range(NUM_EMPLOYEES):
         for shift in range(NUM_SHIFTS):
             shifts[(employee, shift)] = model.NewBoolVar(f'shift_{employee}_{shift}')
 
-    # משתני חוסרים לכל תפקיד בכל משמרת
+    # Shortage variables for each role in each shift
     role_shortages = {}
     for shift in range(NUM_SHIFTS):
         shift_name = shift_names[shift % shifts_per_day]
@@ -168,7 +169,7 @@ def solve_schedule():
                 0, required_count, f'shortage_{shift}_{role}'
             )
 
-    # אילוץ 1 זמינות עובדים עם התחשבות בעדיפויות
+    # Constraint 1: Employee availability with consideration for priorities
     total_preference_cost = []
     for employee_index, employee_name in enumerate(employees):
         for shift in range(NUM_SHIFTS):
@@ -183,7 +184,7 @@ def solve_schedule():
                 total_preference_cost.append(shift_cost)
 
 
-# אילוץ 2: מספר מינימלי ומקסימלי של עובדים במשמרת
+# Constraint 2: Minimum and maximum number of employees per shift
     for shift in range(NUM_SHIFTS):
         shift_employees = []
         for employee in range(NUM_EMPLOYEES):
@@ -194,7 +195,7 @@ def solve_schedule():
             model.Add(sum(shift_employees) <= max_employees)
 
 
-    # אילוץ 3: דרישות תפקידים בכל משמרת (עם אפשרות לחוסרים)
+    # Constraint 3: Role requirements for each shift (with allowance for shortages)
     total_shortage_cost = []
     for shift in range(NUM_SHIFTS):
         shift_name = shift_names[shift % shifts_per_day]
@@ -214,7 +215,7 @@ def solve_schedule():
                 shortage_cost = role_shortages[(shift, role)] * role_importance[role]
                 total_shortage_cost.append(shortage_cost)
 
-    # אילוץ 4: מקסימום משמרות רצופות
+    # Constraint 4: Maximum consecutive shifts
     for employee in range(NUM_EMPLOYEES):
         for day in range(len(work_days)):
             for shift in range(shifts_per_day):
@@ -226,7 +227,7 @@ def solve_schedule():
                         <= max_consecutive_shifts
                     )
 
-    # אילוץ 5: איזון עומס בין עובדים
+    # Constraint 5: Balancing workload among employees
     min_shifts_per_employee = model.NewIntVar(0, NUM_SHIFTS, 'min_shifts')
     max_shifts_per_employee = model.NewIntVar(0, NUM_SHIFTS, 'max_shifts')
     
@@ -238,7 +239,7 @@ def solve_schedule():
     model.AddMinEquality(min_shifts_per_employee, shifts_per_employee)
     model.AddMaxEquality(max_shifts_per_employee, shifts_per_employee)
 
-    #אילוץ 6: עובדים לא יכולים לעבוד ביותר מתפקיד אחד בו זמנית במשמרת
+    # Constraint 6: Employees cannot work in more than one role simultaneously in a shift
     for shift in range(NUM_SHIFTS):
         for employee_index, employee_name in enumerate(employees):
             roles_in_shift = []
@@ -249,15 +250,15 @@ def solve_schedule():
                 model.Add(sum(roles_in_shift) <= 1)
 
 
-    # פונקציית מטרה משולבת:
+    # Combined objective function:
     balance_cost = max_shifts_per_employee - min_shifts_per_employee
     shortage_cost = sum(total_shortage_cost)
     preference_cost = sum(total_preference_cost)
     
-    # משקלות לכל מרכיב במטרה
-    BALANCE_WEIGHT = 1000  # משקל גבוה לאיזון עומס
-    SHORTAGE_WEIGHT = 500  # משקל בינוני לחוסרים
-    PREFERENCE_WEIGHT = 100  # משקל נמוך יותר להעדפות
+    # Weights for each component in the objective
+    BALANCE_WEIGHT = 1000  # High weight for workload balance
+    SHORTAGE_WEIGHT = 500  # Medium weight for shortages
+    PREFERENCE_WEIGHT = 100  # Lower weight for preferences
     
     total_cost = (BALANCE_WEIGHT * balance_cost + 
                  SHORTAGE_WEIGHT * shortage_cost + 
@@ -265,7 +266,7 @@ def solve_schedule():
     
     model.Minimize(total_cost)
 
-    # פתרון
+    # Solution
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = 60.0
     status = solver.Solve(model)
@@ -279,7 +280,7 @@ def solve_schedule():
         
         return formatted_json,textOutput  
 
-    return None  # אם אין פ
+    return None  
 def display_schedule(solver, shifts, availability_dict, role_shortages, constraints):
     """
     Returns a list of strings, each representing one shift's summary.

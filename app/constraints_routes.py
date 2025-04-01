@@ -4,6 +4,7 @@ from flask import Blueprint, json, request, jsonify, Response
 from models.constraints_model import load_draft,save_draft,create_or_update_constraint, get_constraints_by_uid, delete_constraints
 from models.schemas import constraints_schema
 from models.database import get_collection
+from models.manager_settings_model import get_manager_settings
 # from app.middlewares.gemini_api import generate
 
 
@@ -50,12 +51,14 @@ def delete_constraint(uid):
 
 @constraints_api.route("/save-draft", methods=["POST"])
 def save_draft_route():
+    manager_settings=get_manager_settings()
     try:
         data = request.get_json()
         uid = data.get("uid")
         draft_data = {
             "availability": data.get("availability", []),
-            "constraints": data.get("constraints", "")
+            "constraints": data.get("constraints", ""),
+            "draftVersion": manager_settings.get("activeVersion", "")
         }
         response = save_draft(uid, draft_data)
         return jsonify(response), 200
@@ -71,10 +74,15 @@ def load_draft_route(uid):
         response = load_draft(uid)
         return jsonify(response), 200
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        error_message = str(e)
+        if "Draft version is outdated." in error_message:
+            return jsonify({"error": error_message, "errorType": "OUTDATED"}), 403
+        elif "No draft found" in error_message:
+            return jsonify({"error": error_message, "errorType": "NOT_FOUND"}), 404
+        else:
+            return jsonify({"error": error_message, "errorType": "VALIDATION_ERROR"}), 400
     except Exception as e:
-        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
-
+        return jsonify({"error": "An unexpected error occurred", "details": str(e), "errorType": "UNEXPECTED"}), 500
 
 # @constraints_api.route("/gemini", methods=["POST"])
 # def generate_priority():
