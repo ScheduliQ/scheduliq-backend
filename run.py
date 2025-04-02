@@ -10,6 +10,7 @@ from app.manager_settings_routes import manager_settings_api
 from app.manager_messages_routes import manager_messages_api
 from flask_mail import Mail
 from configs.envconfig import MAIL_USERNAME,MAIL_PASSWORD
+from app.notifications_routes import notifications_api
 from utils.scheduler import start_scheduler
 app = Flask(__name__)
 CORS(app)
@@ -38,6 +39,7 @@ app.register_blueprint(alg_api,url_prefix='/csp')
 app.register_blueprint(schedule_api, url_prefix="/schedule")
 app.register_blueprint(manager_settings_api, url_prefix='/manager-settings')
 app.register_blueprint(manager_messages_api, url_prefix='/manager-messages')
+app.register_blueprint(notifications_api, url_prefix='/notifications')
 
 if __name__ == '__main__':
     # app.run(debug=True)
