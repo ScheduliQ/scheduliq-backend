@@ -129,3 +129,16 @@ manager_messages_schema = {
     "profile_picture": {"type": "string", "required": True},
     "sid": {"type": "string","required": True},
 }
+
+
+notifications_schema = {
+    "message": {"type": "string", "required": True},
+    "data": {"type": "string", "required": False},
+    "createdAt": {"type": "datetime", "required": True},
+    "read_by": {
+        "type": "list",
+        "required": True,
+        "schema": {"type": "string"},
+        "default": []
+    }
+}
