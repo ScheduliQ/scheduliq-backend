@@ -23,7 +23,7 @@ def parse_json_to_constraints():
 def solve_schedule():
     model = cp_model.CpModel()
     
-    # קריאת נתונים
+    # Reading data
     constraints = parse_json_to_constraints()
     employee_skills = constraints["employee_skills"]
     employees = list(employee_skills.keys())
@@ -39,13 +39,13 @@ def solve_schedule():
     shift_names = constraints["shift_names"]
     role_importance = constraints["role_importance"]
 
-    # המרת זמינות לעבודה למבנה נוח
+    # Converting availability data into a convenient structure
     availability_dict = {}  # Mapping (employee, shift) -> priority
     for employee_name, shifts_data in employee_availability.items():
         for shift_id, priority in shifts_data:
             availability_dict[(employee_name, shift_id)] = priority
 
-    # משתנים חדשים: עבור כל (עובד, משמרת, תפקיד) שמסומן כנדרש
+    # New variables: For each (employee, shift, role) marked as required
     assignments = {}
     for e in range(NUM_EMPLOYEES):
         employee = employees[e]
@@ -56,23 +56,23 @@ def solve_schedule():
                 if role in employee_skills[employee]:
                     assignments[(e, shift, role)] = model.NewBoolVar(f'assign_{e}_{shift}_{role}')
 
-    # הגבלה: לכל עובד ומשמרת, לא יותר מתפקיד אחד
-    shifts = {}  # נבנה משתנה עזר שיסמן אם העובד מועסק במשמרת זו (לשימור הפורמט הקיים)
+    # Constraint 1: For each employee and shift, no more than one role
+    shifts = {}  # Create a helper variable to indicate if the employee is assigned to this shift (to maintain the existing format)
     for e in range(NUM_EMPLOYEES):
         employee = employees[e]
         for shift in range(NUM_SHIFTS):
             shift_name = shift_names[shift % shifts_per_day]
-            # איסוף כל המשתנים עבור התפקידים שאפשר להעסיק בהם את העובד במשמרת זו
+            # Collect all variables for roles in which the employee can be assigned during this shift
             role_vars = [assignments[(e, shift, role)] for role in roles_per_shift[shift_name] if (e, shift, role) in assignments]
             if role_vars:
-                # העובד יכול להיות מועסק במשמרת אם לפחות תפקיד אחד נבחר (ואנו מגבילים זאת ל-1)
+                # The employee can be assigned to the shift if at least one role is selected (and we limit it to 1)
                 shifts[(e, shift)] = model.NewBoolVar(f'shift_{e}_{shift}')
                 model.Add(sum(role_vars) == shifts[(e, shift)])
-                model.Add(sum(role_vars) <= 1)  # הגבלה נוספת לודאות
+                model.Add(sum(role_vars) <= 1)  
             else:
                 shifts[(e, shift)] = model.NewConstant(0)
 
-    # הגבלת זמינות העובדים – אם העובד לא זמין למשמרת, אין לאפשר הקצאה
+    # Restrict employee availability – if the employee is not available for a shift, do not allow assignment
     for e in range(NUM_EMPLOYEES):
         employee = employees[e]
         for shift in range(NUM_SHIFTS):
@@ -82,7 +82,7 @@ def solve_schedule():
                     if (e, shift, role) in assignments:
                         model.Add(assignments[(e, shift, role)] == 0)
 
-    # חישוב עלות העדפות – לכל הקצאת תפקיד
+    # Calculating preference cost – for each role assignment
     total_preference_cost = []
     for e in range(NUM_EMPLOYEES):
         employee = employees[e]
@@ -94,7 +94,8 @@ def solve_schedule():
                     if (e, shift, role) in assignments:
                         total_preference_cost.append((10 - priority) * assignments[(e, shift, role)])
 
-    # משתני חיסור לתפקיד בכל משמרת (כפי שהיה)
+    # constraint 2: Role requirements, The sum of employees assigned to a role plus the shortage equals the requirement
+    # Shortage variables for roles in each shift (as before)
     role_shortages = {}
     total_shortage_cost = []
     for shift in range(NUM_SHIFTS):
@@ -102,7 +103,6 @@ def solve_schedule():
         for role, required_count in roles_per_shift[shift_name].items():
             role_shortages[(shift, role)] = model.NewIntVar(0, required_count, f'shortage_{shift}_{role}')
 
-    # הגבלת דרישות לתפקיד: סכום העובדים המוקצים לתפקיד בתוספת החיסור שווה לדרישה
     for shift in range(NUM_SHIFTS):
         shift_name = shift_names[shift % shifts_per_day]
         for role, required_count in roles_per_shift[shift_name].items():
@@ -116,14 +116,13 @@ def solve_schedule():
             shortage_cost = role_shortages[(shift, role)] * role_importance[role]
             total_shortage_cost.append(shortage_cost)
 
-    # Constraint 2: הגבלת מקסימום עובדים למשמרת (באמצעות המשתנה shifts)
+    # Constraint 3: Limit the maximum number of employees per shift (using the variable shifts)
     for shift in range(NUM_SHIFTS):
         shift_employees = [shifts[(e, shift)] for e in range(NUM_EMPLOYEES) if any(shift_data[0] == shift for shift_data in employee_availability[employees[e]])]
         if shift_employees:
             model.Add(sum(shift_employees) <= max_employees)
-        # (אין הגבלה מינימלית – ההפרה מותרת בעלות)
 
-    # Constraint 4: הגבלת מספר משמרות רצופות לעובד
+    # Constraint 4: Limit the number of consecutive shifts for an employee
     for e in range(NUM_EMPLOYEES):
         for day in range(len(work_days)):
             for shift in range(shifts_per_day):
@@ -135,7 +134,7 @@ def solve_schedule():
                         <= max_consecutive_shifts
                     )
 
-    # Constraint 5: איזון עומס עבודה בין העובדים
+    # Constraint 5: Balancing workload among employees
     shifts_per_employee = []
     for e in range(NUM_EMPLOYEES):
         employee_shifts = sum(shifts[(e, shift)] for shift in range(NUM_SHIFTS))
@@ -146,7 +145,7 @@ def solve_schedule():
     model.AddMinEquality(min_shifts_per_employee, shifts_per_employee)
     model.AddMaxEquality(max_shifts_per_employee, shifts_per_employee)
 
-    # Objective: שילוב עלויות איזון, חוסרים והעדפות
+    # Objective: Combining balance, shortage, and preference costs
     BALANCE_WEIGHT = 1000
     SHORTAGE_WEIGHT = 5000
     PREFERENCE_WEIGHT = 100
@@ -160,7 +159,7 @@ def solve_schedule():
     
     model.Minimize(total_cost)
 
-    # פתרון המודל
+    # Solving the model
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = 60.0
     status = solver.Solve(model)
@@ -180,7 +179,7 @@ def solve_schedule():
 
 def display_schedule(solver, shifts, assignments, availability_dict, role_shortages, constraints):
     """
-    מציג סיכום מפורט של כל משמרת, כולל הקצאות לפי תפקיד.
+    Displays a detailed summary of each shift, including assignments by role.
     """
     shift_summaries = []
     employees = list(constraints["employee_skills"].keys())
@@ -198,13 +197,13 @@ def display_schedule(solver, shifts, assignments, availability_dict, role_shorta
         lines.append(f"{day.upper()} - {shift_name.upper()}")
         lines.append("=" * 30)
         
-        # 1. דרישות התפקידים
+        # 1. Role requirements
         shift_roles = roles_per_shift[shift_name]
         lines.append("Required Roles:")
         for role, count in shift_roles.items():
             lines.append(f"  • {role.capitalize()}: {count} needed")
         
-        # 2. הקצאות העובדים לפי תפקיד – משתמשים במשתני assignments כדי לדעת איזה תפקיד אכן מולא
+        # 2. Employee assignments by role – using the assignments variables to determine which roles are filled
         lines.append("\nAssigned Employees by Role:")
         assigned_by_role = {role: [] for role in shift_roles.keys()}
         for e, employee in enumerate(employees):
@@ -222,13 +221,13 @@ def display_schedule(solver, shifts, assignments, availability_dict, role_shorta
             else:
                 lines.append("    ⚠ No employees assigned")
         
-        # 3. סטטוס המשמרת
+        # 3. Shift Status
         lines.append("\nStaffing Status:")
         has_shortages = False
         shift_status = []
         for role in shift_roles.keys():
             required_count = shift_roles[role]
-            # מספר העובדים שהוקצו לתפקיד זה
+            # Number of employees assigned to this role
             assigned_count = len(assigned_by_role.get(role, []))
             shortage = required_count - assigned_count
             if shortage > 0:
