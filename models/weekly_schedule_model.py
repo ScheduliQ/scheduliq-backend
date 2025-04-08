@@ -11,15 +11,19 @@ class WeeklyScheduleModel:
         """
         Add a new weekly schedule. If more than MAX_DOCUMENTS exist, remove the earliest one.
         """
+        print(1)
         # Add a timestamp for sorting purposes
         data["created_at"] = datetime.now(timezone.utc)
-        
+        print(2)
         # Insert the new schedule
         result = WeeklyScheduleModel.collection.insert_one(data)
-        
+        print(3)
         # Ensure we do not exceed MAX_DOCUMENTS
         if WeeklyScheduleModel.collection.count_documents({}) > WeeklyScheduleModel.MAX_DOCUMENTS:
-            oldest = WeeklyScheduleModel.collection.find().sort("created_at", 1).limit(1)
+            print(4)
+            oldest_cursor = WeeklyScheduleModel.collection.find().sort("created_at", 1).limit(1)
+            oldest=list(oldest_cursor)[0]
+            print(f"Removing oldest schedule: {oldest['_id']}")
             WeeklyScheduleModel.collection.delete_one({"_id": oldest["_id"]})
         
         return {"message": "Schedule added successfully", "id": str(result.inserted_id)}
