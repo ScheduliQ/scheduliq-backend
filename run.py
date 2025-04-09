@@ -8,6 +8,7 @@ from app.algorithm_routes import alg_api
 from app.schedule_routes import schedule_api
 from app.manager_settings_routes import manager_settings_api
 from app.manager_messages_routes import manager_messages_api
+from app.reports_routes import reports_api
 from flask_mail import Mail
 from configs.envconfig import MAIL_USERNAME,MAIL_PASSWORD
 from app.notifications_routes import notifications_api
@@ -40,6 +41,7 @@ app.register_blueprint(schedule_api, url_prefix="/schedule")
 app.register_blueprint(manager_settings_api, url_prefix='/manager-settings')
 app.register_blueprint(manager_messages_api, url_prefix='/manager-messages')
 app.register_blueprint(notifications_api, url_prefix='/notifications')
+app.register_blueprint(reports_api, url_prefix="/reports")
 
 if __name__ == '__main__':
     # app.run(debug=True)
