@@ -31,6 +31,7 @@ fake_fb_admin.auth = types.SimpleNamespace(
     verify_id_token=lambda token: {"email": "test@example.com"}
 )
 
+
 sys.modules["firebase_admin"]             = fake_fb_admin
 sys.modules["firebase_admin.credentials"] = fake_fb_admin.credentials
 sys.modules["firebase_admin.auth"]        = fake_fb_admin.auth
