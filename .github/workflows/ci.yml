@@ -10,38 +10,42 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    services:
+      mongo:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+
+    env:
+      FLASK_ENV: testing
+      MONGO_URI: mongodb://localhost:27017
+
     steps:
-      # 1 Checkout code
       - name: Checkout source
         uses: actions/checkout@v4
 
-      # 2 Set up Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.9"
 
-      # 3 Cache pip packages (faster reruns)
       - name: Cache pip
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: ${{ runner.os }}-pip-
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-      # 4 Install dependencies
-      - name: Install requirements
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest flake8
+          pip install -r requirements-dev.txt
+          pip install flake8 python-dotenv
 
-      # 5 Static analysis (won’t fail build until you want it to)
       - name: Lint with flake8
         run: |
           flake8 . || echo "flake8 warnings only (pipeline still passes)"
 
-      # 6 Run test‑suite
-      - name: Run pytest
-        run: |
-          pytest -q || echo "No tests collected yet – skipping failure"
+      - name: Run tests
+        run: pytest -v --maxfail=1 --disable-warnings
