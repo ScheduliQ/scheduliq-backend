@@ -13,6 +13,7 @@ from flask_mail import Mail
 from configs.envconfig import MAIL_USERNAME,MAIL_PASSWORD
 from app.notifications_routes import notifications_api
 from utils.scheduler import start_scheduler
+from configs.envconfig import PORT
 app = Flask(__name__)
 CORS(app)
 # Mail configuration
@@ -44,5 +45,9 @@ app.register_blueprint(notifications_api, url_prefix='/notifications')
 app.register_blueprint(reports_api, url_prefix="/reports")
 
 if __name__ == '__main__':
+    port = int(PORT) if PORT else 5000  # Default to 5000 if PORT is not set
+
     # app.run(debug=True)
-    socketio.run(app, debug=True)
+    # socketio.run(app, debug=True)
+    socketio.run(app, host="0.0.0.0", port=port, debug=True)
+
