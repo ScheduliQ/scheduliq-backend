@@ -34,4 +34,4 @@ COPY . .
 EXPOSE 5000
 
 # Run the app with Gunicorn and Eventlet
-CMD ["gunicorn", "-k", "eventlet", "-w", "4", "--bind", "0.0.0.0:5000", "run:app"]
+CMD ["gunicorn","-k","eventlet","-w","4","--timeout","120","--bind","0.0.0.0:5000","run:app"]
