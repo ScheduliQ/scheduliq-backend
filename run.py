@@ -29,7 +29,8 @@ app.config.update(
 
 mail = Mail(app)  # Initialize Flask-Mail
 
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
+
 app.socketio = socketio  # Attach to the app for later access in routes
 scheduler = start_scheduler()
 
@@ -46,8 +47,10 @@ app.register_blueprint(reports_api, url_prefix="/reports")
 
 if __name__ == '__main__':
     port = int(PORT) if PORT else 5000  # Default to 5000 if PORT is not set
+    
 
     # app.run(debug=True)
     # socketio.run(app, debug=True)
-    socketio.run(app, host="0.0.0.0", port=port, debug=True)
+    socketio.run(app, host="0.0.0.0", port=port, debug=False, use_reloader=False)
+
 
