@@ -1,37 +1,18 @@
-# # שלב בנייה
-# FROM python:3.11-slim
-
-# # הגדרת תיקיית עבודה
-# WORKDIR /app
-
-# # העתקת קובץ התלויות והתקנה
-# COPY requirements.txt ./
-# RUN pip install --no-cache-dir -r requirements.txt
-
-# # העתקת שאר הקוד
-# COPY . .
-
-# # חשיפת פורט
-# EXPOSE 5000
-
-# # פקודת הרצה - מפעילה את run.py שמשתמש ב-socketio.run()
-# CMD ["python", "run.py"]
-
-# Dockerfile for backend with Gunicorn & Eventlet
+# שלב בנייה
 FROM python:3.11-slim
 
+# הגדרת תיקיית עבודה
 WORKDIR /app
 
-# Copy dependencies file and install packages including Gunicorn and Eventlet
+# העתקת קובץ התלויות והתקנה
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir gunicorn eventlet
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# העתקת שאר הקוד
 COPY . .
 
-# Expose port used by Gunicorn
+# חשיפת פורט
 EXPOSE 5000
 
-# Run the app with Gunicorn and Eventlet
-CMD ["gunicorn","-k","eventlet","-w","4","--timeout","120","--bind","0.0.0.0:5000","run:app"]
+# פקודת הרצה - מפעילה את run.py שמשתמש ב-socketio.run()
+CMD ["python", "run.py"]
