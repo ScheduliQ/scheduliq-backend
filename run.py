@@ -29,7 +29,7 @@ app.config.update(
 
 mail = Mail(app)  # Initialize Flask-Mail
 
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 app.socketio = socketio  # Attach to the app for later access in routes
 scheduler = start_scheduler()
