@@ -16,8 +16,10 @@ from utils.scheduler import start_scheduler
 from configs.envconfig import PORT
 from socketio_server import socketio
 import os
-import eventlet
-eventlet.monkey_patch()
+if os.getenv("FLASK_ENV") == "production":
+    import eventlet
+    eventlet.monkey_patch()
+
 app = Flask(__name__)
 CORS(app)
 # Mail configuration
@@ -33,7 +35,12 @@ app.config.update(
 
 mail = Mail(app)  # Initialize Flask-Mail
 
-socketio.init_app(app)
+redis_url=os.getenv("REDIS_URL", "redis://redis:6379/0")
+if os.getenv("FLASK_ENV")=="production":
+    socketio.init_app(app, message_queue=redis_url)
+else:
+    socketio.init_app(app)
+# socketio.init_app(app)
 
 app.socketio = socketio  # Attach to the app for later access in routes
 scheduler = start_scheduler()
