@@ -6,19 +6,21 @@ from app.algorithm.csp_algoritm import solve_schedule
 def generate_schedule(self, socket_id):
     from run import socketio
 
-    """
-    Runs your CSP solver off-process, then pushes the result
-    back to the browser over the same Socket.IO connection.
-    """
-    result = solve_schedule()  # returns (formatted_json, text_output)
+    print(f"[generate_schedule] started for socket_id={socket_id}")
+
+    result = solve_schedule()  # your CSP solver
+    print("[generate_schedule] solver returned:", "no result" if not result else "ok")
+
     if not result:
+        print("[generate_schedule] no feasible solution")
         return {"error": "no-solution"}
 
     solution, text = result
-    # emit into the room matching the client’s socket_id
+    print("[generate_schedule] emitting schedule_ready")
     socketio.emit(
         "schedule_ready",
         {"solution": solution, "text": text},
         room=socket_id
     )
+    print("[generate_schedule] done")
     return {"status": "ok"}
