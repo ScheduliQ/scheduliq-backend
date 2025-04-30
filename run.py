@@ -15,6 +15,8 @@ from app.notifications_routes import notifications_api
 from utils.scheduler import start_scheduler
 from configs.envconfig import PORT
 import os
+import eventlet
+eventlet.monkey_patch()
 app = Flask(__name__)
 CORS(app)
 # Mail configuration
