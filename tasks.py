@@ -1,10 +1,11 @@
 # back/tasks.py
 from celery_app import celery
 from app.algorithm.csp_algoritm import solve_schedule
-from run import socketio
 
 @celery.task(bind=True)
 def generate_schedule(self, socket_id):
+    from run import socketio
+
     """
     Runs your CSP solver off-process, then pushes the result
     back to the browser over the same Socket.IO connection.

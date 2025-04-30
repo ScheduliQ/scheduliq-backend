@@ -1,6 +1,6 @@
 
 from flask import Blueprint, request, jsonify
-from app.algorithm.csp_algoritm import solve_schedule
+# from app.algorithm.csp_algoritm import solve_schedule
 from tasks import generate_schedule
 
 alg_api = Blueprint("alg_api", __name__)
