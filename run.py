@@ -35,12 +35,12 @@ app.config.update(
 
 mail = Mail(app)  # Initialize Flask-Mail
 
-redis_url=os.getenv("REDIS_URL", "redis://redis:6379/0")
-if os.getenv("FLASK_ENV")=="production":
-    socketio.init_app(app, message_queue=redis_url)
-else:
-    socketio.init_app(app)
-# socketio.init_app(app)
+# redis_url=os.getenv("REDIS_URL", "redis://redis:6379/0")
+# if os.getenv("FLASK_ENV")=="production":
+#     socketio.init_app(app, message_queue=redis_url)
+# else:
+#     socketio.init_app(app)
+socketio.init_app(app)
 
 app.socketio = socketio  # Attach to the app for later access in routes
 scheduler = start_scheduler()
