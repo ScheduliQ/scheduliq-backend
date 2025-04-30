@@ -15,7 +15,6 @@ from app.notifications_routes import notifications_api
 from utils.scheduler import start_scheduler
 from configs.envconfig import PORT
 from socketio_server import socketio
-
 import os
 import eventlet
 eventlet.monkey_patch()
