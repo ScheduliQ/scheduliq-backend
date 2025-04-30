@@ -21,7 +21,7 @@ celery = Celery(
     "tasks",
     broker=REDIS_URL,
     backend=REDIS_URL,
-    include=["back.tasks"],    # נתיב מלא ל־tasks.py
+    include=["tasks"],    # נתיב מלא ל־tasks.py
 )
 
 # ב-DEV נפעיל eager mode (ריצה בסנכרון, בלי צורך ב-worker)
