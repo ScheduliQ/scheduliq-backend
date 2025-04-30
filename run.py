@@ -14,6 +14,8 @@ from configs.envconfig import MAIL_USERNAME,MAIL_PASSWORD
 from app.notifications_routes import notifications_api
 from utils.scheduler import start_scheduler
 from configs.envconfig import PORT
+from socketio_server import socketio
+
 import os
 import eventlet
 eventlet.monkey_patch()
@@ -32,7 +34,7 @@ app.config.update(
 
 mail = Mail(app)  # Initialize Flask-Mail
 
-socketio = SocketIO(app, cors_allowed_origins="*", message_queue=os.getenv("REDIS_URL", "redis://redis:6379/0"))
+socketio.init_app(app)
 
 app.socketio = socketio  # Attach to the app for later access in routes
 scheduler = start_scheduler()

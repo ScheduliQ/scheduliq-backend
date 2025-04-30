@@ -1,10 +1,11 @@
 # back/tasks.py
 from celery_app import celery
 from app.algorithm.csp_algoritm import solve_schedule
+from socketio_server import socketio
 
 @celery.task(bind=True)
 def generate_schedule(self, socket_id):
-    from run import socketio
+    # from run import socketio
 
     print(f"[generate_schedule] started for socket_id={socket_id}")
 
