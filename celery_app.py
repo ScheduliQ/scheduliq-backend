@@ -7,4 +7,5 @@ celery = Celery(
     "tasks",
     broker=redis_url,
     backend=redis_url,
+    include=["tasks"]
 )
