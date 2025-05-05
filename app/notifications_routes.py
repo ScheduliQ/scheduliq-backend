@@ -1,5 +1,7 @@
 import datetime
 from flask import Blueprint, current_app, request, jsonify
+from socketio_server import socketio
+
 from models.notifications_model import (
     create_global_notification,
     get_last_notifications,
@@ -42,7 +44,7 @@ def create_notification_route():
     }
     print("Sending notification to all employees:", tosend)
 
-    current_app.socketio.emit("notification", tosend,skip_sid=data.get("uid"), )
+    socketio.emit("notification", tosend,skip_sid=data.get("uid"), )
 
     return jsonify(notification), 201
 

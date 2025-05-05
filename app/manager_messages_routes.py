@@ -5,6 +5,8 @@ from app.middlewares.email_sender import send_email_html
 from app.middlewares.session_middleware import verify_token
 from models.manager_messages_model import ManagerMessagesModel
 from models.user_model import UserModel 
+from socketio_server import socketio
+
 
 manager_messages_api = Blueprint('manager_messages_api', __name__, url_prefix='/manager-messages')
 
@@ -233,7 +235,7 @@ def create_manager_message():
 
             send_email_html(employee_emails, subject, html_body)
             
-        current_app.socketio.emit(
+        socketio.emit(
             'new_manager_message', 
             new_message,  
             skip_sid=data.get("sid"),
@@ -257,7 +259,7 @@ def update_manager_message(message_id):
     try:
         updated_message = ManagerMessagesModel.update(Message_id, data)
         # Broadcast the updated message (excluding the sender)
-        current_app.socketio.emit(
+        socketio.emit(
             'update_manager_message', 
             updated_message, 
             skip_sid=data.get("sid"),
@@ -277,7 +279,7 @@ def delete_manager_message(message_id):
         Message_id = ObjectId(message_id)
         success = ManagerMessagesModel.delete(Message_id)
         # Broadcast the deletion event (excluding the sender)
-        current_app.socketio.emit(
+        socketio.emit(
             'delete_manager_message', 
             {'_id': message_id}, 
         )
