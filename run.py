@@ -104,10 +104,8 @@ app.config.update(
 Mail(app)
 start_scheduler()
 
-# אתחול SocketIO (message_queue כבר הועבר ב-socketio_server.py)
 socketio.init_app(app)
 
-# רישום ה-blueprints
 app.register_blueprint(user_api, url_prefix='/user')
 app.register_blueprint(auth_api, url_prefix='/auth')
 app.register_blueprint(constraints_api, url_prefix='/constraints')
@@ -121,3 +119,4 @@ app.register_blueprint(reports_api, url_prefix='/reports')
 if __name__ == '__main__':
     port = int(os.getenv("PORT", PORT or 5000))
     socketio.run(app, host="0.0.0.0", port=port, debug=True, use_reloader=False)
+#hello its deploy test
