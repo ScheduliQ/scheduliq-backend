@@ -1,5 +1,5 @@
 from models.database import get_collection
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from bson.objectid import ObjectId
 
 class WeeklyScheduleModel:
@@ -11,16 +11,26 @@ class WeeklyScheduleModel:
         """
         Add a new weekly schedule. If more than MAX_DOCUMENTS exist, remove the earliest one.
         """
-        print(1)
         # Add a timestamp for sorting purposes
         data["created_at"] = datetime.now(timezone.utc)
-        print(2)
+        
+        # Calculate the week range
+        current_date = data["created_at"]
+        # Find the next Sunday (0 is Monday, 6 is Sunday in Python)
+        days_until_sunday = (6 - current_date.weekday()) % 7
+        if days_until_sunday == 0:
+            days_until_sunday = 7  # If today is Sunday, get next Sunday
+        start_of_week = current_date.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=days_until_sunday)
+        end_of_week = start_of_week + timedelta(days=6)  # Add 6 days to get to Saturday
+        
+        # Format the week range in the new format
+        week_range = f"{start_of_week.day}/{start_of_week.month}/{start_of_week.year} - {end_of_week.day}/{end_of_week.month}/{end_of_week.year}"
+        data["week_range"] = week_range
+        
         # Insert the new schedule
         result = WeeklyScheduleModel.collection.insert_one(data)
-        print(3)
         # Ensure we do not exceed MAX_DOCUMENTS
         if WeeklyScheduleModel.collection.count_documents({}) > WeeklyScheduleModel.MAX_DOCUMENTS:
-            print(4)
             oldest_cursor = WeeklyScheduleModel.collection.find().sort("created_at", 1).limit(1)
             oldest=list(oldest_cursor)[0]
             print(f"Removing oldest schedule: {oldest['_id']}")
