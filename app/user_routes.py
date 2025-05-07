@@ -86,6 +86,7 @@ def contact():
     data = request.get_json()
     name = data.get('name', '')
     email = data.get('email', '')
+    subject = data.get('subject', 'No Subject')
     message_text = data.get('message', '')
 
     # Validate required fields
@@ -93,7 +94,7 @@ def contact():
         return jsonify({'error': 'All fields are required'}), 400
 
     try:
-        send_contact_email(name, email, message_text)
+        send_contact_email(name, email, subject, message_text)
         return jsonify({'message': 'Email sent successfully'}), 200
     except Exception as e:
         return jsonify({'error': 'Failed to send email'}), 500
