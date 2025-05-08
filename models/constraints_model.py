@@ -64,5 +64,9 @@ def load_draft(uid):
     
 
 def get_all_constraints():
-    return constraints_collection.find()
+    constraints = list(constraints_collection.find())
+    for constraint in constraints:
+        if "_id" in constraint:
+            constraint["_id"] = str(constraint["_id"])
+    return constraints
 

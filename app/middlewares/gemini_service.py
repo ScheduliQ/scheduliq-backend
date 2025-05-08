@@ -83,7 +83,37 @@ def build_prompt_data(manager_settings, constraints_docs):
     # Dump the summary to a compact JSON string (separators remove unnecessary whitespace)
     return json.dumps(final_summary, ensure_ascii=False, separators=(",", ":"))
 
-
+def validate_availability_format(data):
+    """
+    Validates that the availability data is in the correct format.
+    
+    Parameters:
+        data (list): List of availability entries
+        
+    Returns:
+        bool: True if valid, raises ValueError if invalid
+        
+    Raises:
+        ValueError: If the data format is invalid
+    """
+    if not isinstance(data, list):
+        raise ValueError("Data must be a list")
+        
+    for entry in data:
+        if not isinstance(entry, dict):
+            raise ValueError("Each entry must be a dictionary")
+            
+        required_keys = {"shift", "day", "priority"}
+        if not all(key in entry for key in required_keys):
+            raise ValueError("Each entry must contain 'shift', 'day', and 'priority'")
+            
+        if not isinstance(entry["shift"], int) or not isinstance(entry["day"], int):
+            raise ValueError("'shift' and 'day' must be integers")
+            
+        if not isinstance(entry["priority"], int) or entry["priority"] < 1 or entry["priority"] > 10:
+            raise ValueError("'priority' must be an integer between 1 and 10")
+    
+    return True
 
 def parse_availability(response_str):
     """
@@ -107,8 +137,10 @@ def parse_availability(response_str):
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON format: {str(e)}")
     
+    # Validate the format
+    validate_availability_format(data)
+    
     return data
-
 
 def priorityByAI(constraints, availability):
     # Set the model to "gemini-1.5-flash"

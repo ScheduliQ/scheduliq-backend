@@ -1,7 +1,7 @@
 # app/routes/constraints_routes.py
 from app.middlewares.gemini_service import priorityByAI
 from flask import Blueprint, json, request, jsonify, Response
-from models.constraints_model import load_draft,save_draft,create_or_update_constraint, get_constraints_by_uid, delete_constraints
+from models.constraints_model import load_draft,save_draft,create_or_update_constraint, get_constraints_by_uid, delete_constraints, get_all_constraints
 from models.schemas import constraints_schema
 from models.database import get_collection
 from models.manager_settings_model import get_manager_settings
@@ -83,6 +83,27 @@ def load_draft_route(uid):
             return jsonify({"error": error_message, "errorType": "VALIDATION_ERROR"}), 400
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred", "details": str(e), "errorType": "UNEXPECTED"}), 500
+
+
+@constraints_api.route("/employees-constraints", methods=["GET"])
+def get_employees_constraints():
+    try:
+        # קבלת כל האילוצים מהמסד נתונים
+        all_constraints = get_all_constraints()
+        
+        # יצירת רשימה עם המידע הנדרש בלבד
+        filtered_constraints = []
+        for constraint in all_constraints:
+            employee_data = {
+                "first_name": constraint.get("first_name", ""),
+                "last_name": constraint.get("last_name", ""),
+                "constraints": constraint.get("constraints", "")
+            }
+            filtered_constraints.append(employee_data)
+        
+        return jsonify(filtered_constraints), 200
+    except Exception as e:
+        return jsonify({"error": "Failed to retrieve employee constraints", "details": str(e)}), 500
 
 # @constraints_api.route("/gemini", methods=["POST"])
 # def generate_priority():
