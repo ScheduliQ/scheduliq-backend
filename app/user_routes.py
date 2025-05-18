@@ -4,7 +4,10 @@ from app.middlewares.session_middleware import verify_token
 from cloudinary.uploader import upload
 from configs.cloudinary_config import cloudinary
 from models.user_model import UserModel
+from models.constraints_model import delete_constraints
 from app.middlewares.email_sender import send_contact_email
+import firebase_admin
+from firebase_admin import auth
 
 
 user_api = Blueprint('user_api', __name__)
@@ -164,3 +167,24 @@ def update_employees():
         return jsonify({"message": "Employees updated successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+@user_api.route('/delete/<uid>', methods=['DELETE'])
+def delete_user(uid):
+    try:
+        
+        # 1. Delete user from Firebase
+        auth.delete_user(uid)
+        
+        # 2. Delete user's constraints
+        delete_constraints(uid)
+        
+        # 3. Delete user from MongoDB
+        if UserModel.delete(uid):
+            return jsonify({"message": "User successfully deleted from all systems"}), 200
+        else:
+            return jsonify({"error": "User not found in database"}), 404
+            
+    except firebase_admin.exceptions.FirebaseError as e:
+        return jsonify({"error": f"Firebase error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error deleting user: {str(e)}"}), 500
