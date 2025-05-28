@@ -1,26 +1,3 @@
-import socket
-import requests
-from requests.adapters import HTTPAdapter
-
-
-
-class IPv6Adapter(HTTPAdapter):
-    def init_poolmanager(self, *args, **kwargs):
-        kwargs.setdefault('socket_options', []).append(
-            (socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 1)
-        )
-        return super().init_poolmanager(*args, **kwargs)
-
-_orig_sess_init = requests.Session.__init__
-def _sess_init(self, *args, **kwargs):
-    _orig_sess_init(self, *args, **kwargs)
-    self.mount("https://", IPv6Adapter())
-    self.mount("http://", IPv6Adapter())
-
-requests.Session.__init__ = _sess_init
-
-
-
 import json
 import re
 from urllib import request
