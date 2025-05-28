@@ -188,7 +188,7 @@ def chat_with_manager(manager_message, first_message):
 
     print("➡️ Sending generate_content request to Gemini for chat_with_manager")
     response = client.models.generate_content(
-        model="gemini-2.0-flash",
+        model="gemini-1.5-pro",
         contents=full_context
     )
     print("⬅️ Received response for chat_with_manager:", response)
