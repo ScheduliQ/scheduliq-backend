@@ -67,48 +67,26 @@ def update_schedule_route(schedule_id):
     return jsonify(result),200
 
 
-import traceback
-from flask import request, jsonify
-
 @schedule_api.route("/chatbot", methods=["POST"])
 def chat():
+    """
+    Expects a JSON payload with:
+      - message: the manager's message (string)
+      - first_message: boolean flag (true/false)
+      
+    Returns a JSON object with the chatbot's response.
+    """
     data = request.get_json()
-    print(f"[chatbot] Received payload: {data}")
-
     if not data or "message" not in data or "first_message" not in data:
-        print("[chatbot] Missing 'message' or 'first_message'")
-        return jsonify({"error": "Missing 'message' or 'first_message'"}), 400
+        return jsonify({"error": "Missing message or first_message flag"}), 400
 
     manager_message = data["message"]
     first_message = data["first_message"]
-    print(f"[chatbot] manager_message='{manager_message}', first_message={first_message}")
 
     try:
         reply = chat_with_manager(manager_message, first_message)
-        print(f"[chatbot] Reply generated: {reply}")
-        return jsonify({"response": reply}), 200
-
     except Exception as e:
-        # הדפסת ה-traceback המלא
-        print("-------- EXCEPTION TRACEBACK START --------")
-        traceback.print_exc()
-        print("--------- EXCEPTION TRACEBACK END ---------")
+        print(str(e))
+        return jsonify({"error": str(e)}), 500
 
-        # הדפסת ההודעה הראשית של ה-Exception
-        print(f"[chatbot] Exception message: {e}")
-
-        # אם יש ב-e שדות נוספים (לדוגמה response, errors), אפשר להדפיס אותם
-        if hasattr(e, "response"):
-            try:
-                print("[chatbot] Exception.response:", e.response)
-                # אם response הוא HTTPResponse או דומה, אפשר גם להדפיס e.response.text
-                print("[chatbot] response text:", getattr(e.response, "text", None))
-            except Exception as inner:
-                print("[chatbot] Error printing e.response:", inner)
-
-        # החזרת השגיאה + ה-traceback ב-body כדי לראות גם ב-client
-        tb = traceback.format_exc()
-        return jsonify({
-            "error": str(e),
-            "traceback": tb
-        }), 500
+    return jsonify({"response": reply}), 200
