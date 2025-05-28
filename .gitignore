@@ -10,7 +10,7 @@ venv/
 env/
 .venv/
 .env/
-
+vertex-config.json
 #ignore the firebase json file
 configs/serviceAccountKey.json
 
