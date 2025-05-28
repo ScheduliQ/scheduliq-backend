@@ -86,7 +86,10 @@ def chat():
     try:
         reply = chat_with_manager(manager_message, first_message)
     except Exception as e:
+        print( "----------------")
         print(str(e))
+        print( "----------------")
+
         return jsonify({"error": str(e)}), 500
 
     return jsonify({"response": reply}), 200
