@@ -39,7 +39,7 @@ def generate_schedule(self, socket_id):
         print("[generate_schedule] no solution")
         socketio.emit(
             "schedule_error",
-            {"error": "אין פתרון אפשרי"},
+            {"error": "No feasible solution"},
             namespace="/",
             room=socket_id
         )
