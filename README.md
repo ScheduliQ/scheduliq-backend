@@ -120,6 +120,73 @@ docker build -t scheduliq-backend .
 docker run -p 5000:5000 scheduliq-backend
 ```
 
+## Testing
+
+The project includes a comprehensive testing suite with unit, integration, and end-to-end tests to ensure the reliability and correctness of the system.
+
+### Test Structure
+
+```
+tests/
+│
+├── unit/                  # Tests for individual components
+│   ├── test_database.py
+│   └── test_weekly_schedule_model.py
+│
+├── integration/           # Tests for API endpoints
+│   ├── test_constraints_routes.py
+│   └── test_schedule_routes.py
+│
+├── e2e/                   # End-to-end workflow tests
+│   └── test_schedule_lifecycle.py
+│
+└── conftest.py            # Test configuration and fixtures
+```
+
+### Testing Approach
+
+1. **Unit Tests**: Focused on testing individual components and models in isolation:
+
+   - Database connection and operations
+   - Weekly schedule model functionality
+   - User model operations
+
+2. **Integration Tests**: Testing the interaction between components:
+
+   - API endpoint testing (routes)
+   - Database operations through the API
+   - Response validation
+
+3. **End-to-End Tests**: Testing complete user workflows:
+   - Full schedule creation, modification, and deletion cycle
+   - Authentication flows
+   - Constraint management workflows
+
+### Test Environment
+
+- Uses a dedicated test database (`tests`) to avoid affecting production data
+- Mock Firebase authentication for testing without real credentials
+- Pytest fixtures for common setup and teardown operations
+
+### Running Tests
+
+```bash
+# Install test dependencies
+pip install -r requirements-dev.txt
+
+# Run all tests
+pytest
+
+# Run specific test categories
+pytest tests/unit/
+pytest tests/integration/
+pytest tests/e2e/
+
+# Run with coverage report
+pytest --cov=app --cov=models --cov=utils
+```
+
+
 ## Contributors
 
 - Kobi Alen
