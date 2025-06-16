@@ -16,20 +16,36 @@ def create_constraint():
     data = request.get_json()
     uid = data.get("uid")
     
-    # אם קיימים אילוצים וזמינות, נעדכן את השדה availability
+    # אם קיימים אילוצים וזמינות, ננסה לעדכן את השדה availability
     if "constraints" in data and "availability" in data:
         try:
-            # קריאה לפונקציה שמעדכנת את הזמינות
-            generated_list = priorityByAI(data.get("constraints"), data.get("availability"))
-            # עדכון השדה availability בנתונים
-            data["availability"] = generated_list
+            data["availability"] = priorityByAI(data.get("constraints"), data.get("availability"))
+            status_code = 200
         except Exception as e:
-            return jsonify({"error": f"Error during availability update: {str(e)}"}), 500
+            print(f"Warning: GEMINI operation failed: {str(e)}. Proceeding with original data.")
+            status_code = 201
     
-    # קריאה לפונקציה create_or_update_constraint עם הנתונים המעודכנים
     response = create_or_update_constraint(uid, data)
-    return jsonify(response), 200
+    return jsonify(response), status_code
 
+# @constraints_api.route("/", methods=["POST"])
+# def create_constraint():
+#     data = request.get_json()
+#     uid = data.get("uid")
+    
+#     # אם קיימים אילוצים וזמינות, נעדכן את השדה availability
+#     if "constraints" in data and "availability" in data:
+#         try:
+#             # קריאה לפונקציה שמעדכנת את הזמינות
+#             generated_list = priorityByAI(data.get("constraints"), data.get("availability"))
+#             # עדכון השדה availability בנתונים
+#             data["availability"] = generated_list
+#         except Exception as e:
+#             return jsonify({"error": f"Error during availability update: {str(e)}"}), 500
+    
+#     # קריאה לפונקציה create_or_update_constraint עם הנתונים המעודכנים
+#     response = create_or_update_constraint(uid, data)
+#     return jsonify(response), 200
 
 #route for getting constraints by uid
 @constraints_api.route("/<uid>", methods=["GET"])
