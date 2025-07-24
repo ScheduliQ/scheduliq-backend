@@ -6,7 +6,6 @@ import google.generativeai as genai
 from models.manager_settings_model import get_manager_settings
 from models.constraints_model import get_all_constraints
 
-# Remove global data loading
 genai.configure(api_key=GEMINI_API_KEY)
 
 def build_prompt_data(manager_settings, constraints_docs):
