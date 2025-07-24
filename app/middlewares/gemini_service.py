@@ -6,10 +6,7 @@ import google.generativeai as genai
 from models.manager_settings_model import get_manager_settings
 from models.constraints_model import get_all_constraints
 
-# all_constraints = get_all_constraints()
-all_constraints = list(get_all_constraints())
-
-manager_settings = get_manager_settings()
+# Remove global data loading
 genai.configure(api_key=GEMINI_API_KEY)
 
 def build_prompt_data(manager_settings, constraints_docs):
@@ -143,6 +140,9 @@ def parse_availability(response_str):
     return data
 
 def priorityByAI(constraints, availability):
+    # Fetch fresh data each time the function is called
+    manager_settings = get_manager_settings()
+    
     # Set the model to "gemini-1.5-flash"
     MODEL = "gemini-1.5-flash"
     model = genai.GenerativeModel(MODEL)
@@ -196,6 +196,10 @@ def chat_with_manager(manager_message, first_message):
         str: The chatbot's response.
     """
     global conversation_history
+    
+    # Fetch fresh data each time the function is called
+    manager_settings = get_manager_settings()
+    all_constraints = list(get_all_constraints())
 
     MODEL = "gemini-1.5-flash"
     model = genai.GenerativeModel(MODEL)
